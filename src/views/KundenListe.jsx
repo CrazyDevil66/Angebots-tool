@@ -5,13 +5,10 @@ import {
 } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import FormField, { Input } from '../components/FormField';
-import { saveKunden } from '../lib/storage';
+import { saveKunden } from '../api/stammdaten';
+import { formatBetrag } from '../utils/format';
 
 const leerKunde = { id: null, anrede: '', firma: '', name: '', strasse: '', plz: '', ort: '', email: '', telefon: '' };
-
-function fmt(num) {
-  return Number(num || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 
 function KundeForm({ initial, onSave, onCancel }) {
   const [k, setK] = useState(initial);
@@ -127,7 +124,7 @@ function KundeDrawer({ kunde, angebote, onEdit, onDelete, onClose, onNeuesAngebo
             <div className="text-xs text-slate-400 mt-0.5">Angebote</div>
           </div>
           <div className="bg-emerald-50 rounded-xl p-3 text-center">
-            <div className="text-lg font-bold text-emerald-700">{fmt(stats.umsatz)} €</div>
+            <div className="text-lg font-bold text-emerald-700">{formatBetrag(stats.umsatz)} €</div>
             <div className="text-xs text-slate-400 mt-0.5">Umsatz</div>
           </div>
           <div className="bg-indigo-50 rounded-xl p-3 text-center">
@@ -287,7 +284,7 @@ export default function KundenListe({ navigate, kunden = [], setKunden, angebote
                         }
                       </td>
                       <td className="px-4 py-4 text-sm text-slate-600">{stats.anzahl}</td>
-                      <td className="px-4 py-4 text-sm font-semibold text-slate-800 text-right">{stats.umsatz > 0 ? `${fmt(stats.umsatz)} €` : '—'}</td>
+                      <td className="px-4 py-4 text-sm font-semibold text-slate-800 text-right">{stats.umsatz > 0 ? `${formatBetrag(stats.umsatz)} €` : '—'}</td>
                       <td className="px-4 py-4">
                         <ChevronRight size={16} className={`transition-colors ${isActive ? 'text-indigo-400' : 'text-slate-200 group-hover:text-slate-400'}`} />
                       </td>

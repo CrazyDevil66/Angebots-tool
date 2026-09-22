@@ -2,11 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Building2, CheckCircle2, ImagePlus, Trash2, FileText, CreditCard, Settings2, AlignLeft, BookOpen, Plus, Download, Users, Mail } from 'lucide-react';
 import FormField, { Input, Textarea, Select } from '../components/FormField';
 import FirmenPreview from '../components/FirmenPreview';
-import { saveFirma, saveKatalog } from '../lib/storage';
+import { saveFirma, saveKatalog } from '../api/stammdaten';
 import { defaultData, einheiten } from '../lib/defaultData';
 import BenutzerVerwaltung from './BenutzerVerwaltung';
 import Datensicherung from '../features/einstellungen/Datensicherung';
-import { apiGetSmtp, apiSaveSmtp, apiTestSmtp, clearToken } from '../lib/auth';
+import { apiGetSmtp, apiSaveSmtp, apiTestSmtp, clearToken } from '../api/auth';
 
 function Section({ icon: Icon, title, children }) {
   return (

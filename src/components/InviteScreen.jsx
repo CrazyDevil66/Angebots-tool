@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FileText } from 'lucide-react';
-import { apiRedeemInvite, saveToken } from '../lib/auth';
+import { apiRedeemInvite, saveToken } from '../api/auth';
 
 export default function InviteScreen({ inviteToken, onComplete }) {
   const [password, setPassword] = useState('');

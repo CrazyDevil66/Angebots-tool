@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { Search, Download, Pencil, ChevronDown } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
-import { loadAngebotFull } from '../lib/storage';
+import { loadAngebotFull } from '../api/angebote';
+import { formatBetrag } from '../utils/format';
 import { generatePDF } from '../lib/pdfGenerator';
 import { getStatus } from '../lib/statusConfig';
 
@@ -13,10 +14,6 @@ const TABS = [
   { id: 'gemahnt',    label: 'Gemahnt' },
   { id: 'bezahlt',    label: 'Bezahlt' },
 ];
-
-function fmt(num) {
-  return Number(num || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 
 export default function RechnungenListe({ navigate, angebote = [], token, firma }) {
   const [suche, setSuche] = useState('');
@@ -168,7 +165,7 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma 
                       {a.rechnungsDatum || a.datum || '—'}
                     </td>
                     <td className="px-4 py-3.5 text-sm font-semibold text-slate-800 text-right whitespace-nowrap">
-                      {fmt(a.brutto)} €
+                      {formatBetrag(a.brutto)} €
                     </td>
                     <td className="px-4 py-3.5">
                       <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold border ${s.bg} ${s.text} ${s.border}`}>

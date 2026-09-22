@@ -1,9 +1,6 @@
 import { FileText } from 'lucide-react';
 import { vkPreis, positionGesamt, berechneSummen } from '../../shared/berechnung.js';
-
-function fmt(num) {
-  return Number(num || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
+import { formatBetrag } from '../utils/format';
 
 const C = {
   dark:      '#2D3342',
@@ -198,9 +195,9 @@ export default function PreviewPanel({ data }) {
                       </div>
                       <span style={{ width: '10%', textAlign: 'center', fontSize: 11, color: C.textDark }}>{p.menge}</span>
                       <span style={{ width: '10%', textAlign: 'center', fontSize: 11, color: C.textDark }}>{p.einheit || 'Stk.'}</span>
-                      <span style={{ width: '16%', textAlign: 'right',  fontSize: 11, color: C.textDark }}>{fmt(vk)} €</span>
+                      <span style={{ width: '16%', textAlign: 'right',  fontSize: 11, color: C.textDark }}>{formatBetrag(vk)} €</span>
                       <span style={{ width: '16%', textAlign: 'right', paddingRight: 10, fontSize: 11, fontWeight: 700, color: C.textDark }}>
-                        {fmt(positionGesamt(p))} €
+                        {formatBetrag(positionGesamt(p))} €
                       </span>
                     </div>
                   );
@@ -212,15 +209,15 @@ export default function PreviewPanel({ data }) {
                     <div style={{ marginTop: 12, marginLeft: 'auto', width: '40%' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 10px', borderBottom: `1px solid ${C.border}` }}>
                         <span style={{ fontSize: 11, color: C.textMid }}>Nettobetrag</span>
-                        <span style={{ fontSize: 11, color: C.textDark }}>{fmt(netto)} €</span>
+                        <span style={{ fontSize: 11, color: C.textDark }}>{formatBetrag(netto)} €</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 10px', borderBottom: `1px solid ${C.border}` }}>
                         <span style={{ fontSize: 11, color: C.textMid }}>MwSt. {data.mwstSatz} %</span>
-                        <span style={{ fontSize: 11, color: C.textDark }}>{fmt(mwst)} €</span>
+                        <span style={{ fontSize: 11, color: C.textDark }}>{formatBetrag(mwst)} €</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', backgroundColor: C.yellow, padding: '7px 10px', borderRadius: 3, marginTop: 2 }}>
                         <span style={{ fontSize: 12, fontWeight: 700, color: C.dark }}>Gesamtbetrag</span>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: C.dark }}>{fmt(brutto)} €</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: C.dark }}>{formatBetrag(brutto)} €</span>
                       </div>
                     </div>
 
@@ -245,16 +242,16 @@ export default function PreviewPanel({ data }) {
         <div className="space-y-1.5">
           <div className="flex justify-between text-sm text-slate-500">
             <span>Nettobetrag</span>
-            <span className="font-medium text-slate-700">{fmt(netto)} €</span>
+            <span className="font-medium text-slate-700">{formatBetrag(netto)} €</span>
           </div>
           <div className="flex justify-between text-sm text-slate-500">
             <span>MwSt. {data.mwstSatz}%</span>
-            <span className="font-medium text-slate-700">{fmt(mwst)} €</span>
+            <span className="font-medium text-slate-700">{formatBetrag(mwst)} €</span>
           </div>
           <div className="h-px bg-slate-200 my-2" />
           <div className="flex justify-between font-semibold">
             <span className="text-slate-700">Gesamtbetrag</span>
-            <span className="text-indigo-600 text-base">{fmt(brutto)} €</span>
+            <span className="text-indigo-600 text-base">{formatBetrag(brutto)} €</span>
           </div>
         </div>
       </div>

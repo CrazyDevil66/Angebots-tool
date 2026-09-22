@@ -10,11 +10,10 @@ import LoginScreen from './components/LoginScreen';
 import SetupScreen from './components/SetupScreen';
 import InviteScreen from './components/InviteScreen';
 import ChangePasswordModal from './components/ChangePasswordModal';
-import {
-  loadFirma, loadKunden, loadAngebote, loadKatalog,
-  setAngebotStatus, autoMarkAbgelaufen,
-} from './lib/storage';
-import { apiSetupRequired, apiMe, getToken, saveToken, clearToken } from './lib/auth';
+import { loadFirma, loadKunden, loadKatalog } from './api/stammdaten';
+import { loadAngebote, setAngebotStatus } from './api/angebote';
+import { apiSetupRequired, apiMe, getToken, saveToken, clearToken } from './api/auth';
+import { autoMarkAbgelaufen } from './utils/angebote';
 import { defaultData } from './lib/defaultData';
 
 function parseJwt(token) {

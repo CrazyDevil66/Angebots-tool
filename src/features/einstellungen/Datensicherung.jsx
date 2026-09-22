@@ -1,20 +1,10 @@
 import { useRef, useState } from 'react';
 import { Download, Upload } from 'lucide-react';
-import {
-  ladeBackup, stelleBackupWiederHer,
-  loadFirma, loadKunden, loadKatalog, loadAngebote,
-} from '../../lib/storage';
+import { ladeBackup, stelleBackupWiederHer } from '../../api/backup';
+import { loadFirma, loadKunden, loadKatalog } from '../../api/stammdaten';
+import { loadAngebote } from '../../api/angebote';
 import { defaultData } from '../../lib/defaultData';
-
-function dateiHerunterladen(inhalt, dateiname) {
-  const blob = new Blob([JSON.stringify(inhalt, null, 2)], { type: 'application/json' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = dateiname;
-  a.click();
-  URL.revokeObjectURL(url);
-}
+import { dateiHerunterladen } from '../../utils/download';
 
 function dateiLesen(datei) {
   return new Promise((resolve, reject) => {
@@ -35,7 +25,8 @@ export default function Datensicherung({ token, setFirma, setKunden, setKatalog,
     setLaeuft(true);
     try {
       const backup = await ladeBackup(token);
-      dateiHerunterladen(backup, `objektrausch-backup-${new Date().toISOString().slice(0, 10)}.json`);
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      dateiHerunterladen(blob, `objektrausch-backup-${new Date().toISOString().slice(0, 10)}.json`);
     } catch (e) {
       setMeldung({ fehler: true, text: `Export fehlgeschlagen: ${e.message}` });
     } finally {

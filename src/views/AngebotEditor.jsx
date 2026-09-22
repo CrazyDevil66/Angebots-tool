@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import SectionCard from '../components/SectionCard';
 import FormField, { Input, Textarea } from '../components/FormField';
-import DateInput, { add14Days } from '../components/DateInput';
+import DateInput from '../components/DateInput';
 import PositionenTabelle from '../components/PositionenTabelle';
 import PreviewPanel from '../components/PreviewPanel';
 import StatusDropdown from '../components/StatusDropdown';
@@ -18,8 +18,11 @@ import { generatePDF } from '../lib/pdfGenerator';
 import { defaultData } from '../lib/defaultData';
 import {
   saveAngebot, updateAngebot, setAngebotStatus,
-  setAngebotRechnung, setMahnung, setBezahlt, nextAngebotNr, loadAngebotFull,
-} from '../lib/storage';
+  setAngebotRechnung, setMahnung, setBezahlt, loadAngebotFull,
+} from '../api/angebote';
+import { nextAngebotNr } from '../utils/angebote';
+import { add14Days, heuteDE } from '../utils/datum';
+import { briefAnrede, einleitungMitAnrede } from '../utils/anrede';
 
 function Collapse({ title, icon: Icon, children, defaultOpen = true }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -46,7 +49,7 @@ function initData(params, firmaData, angeboteData) {
   // Für bestehende Angebote: Snapshot wird async via useEffect geladen
   if (params?.angebotId) return { ...defaultData, firma };
 
-  const datum = new Date().toLocaleDateString('de-DE');
+  const datum = heuteDE();
   const base = {
     ...defaultData,
     angebotNr: nextAngebotNr(angeboteData),
@@ -127,19 +130,11 @@ export default function AngebotEditor({ navigate, params = {}, firma, kunden = [
     setData(prev => ({ ...prev, datum: val, gueltigBis: add14Days(val) }));
   }
 
-  function genEinleitung(anrede, name, template) {
-    let ansprache;
-    if (anrede === 'Herr')  ansprache = `Sehr geehrter Herr ${name || ''},`;
-    else if (anrede === 'Frau') ansprache = `Sehr geehrte Frau ${name || ''},`;
-    else ansprache = 'Sehr geehrte Damen und Herren,';
-    return `${ansprache}\n\n${template}`;
-  }
-
   function handleAnredeChange(anrede) {
     setData(prev => ({
       ...prev,
       kunde: { ...prev.kunde, anrede },
-      einleitung: genEinleitung(anrede, prev.kunde.name, prev.firma.einleitungAngebot ?? defaultData.firma.einleitungAngebot),
+      einleitung: einleitungMitAnrede(anrede, prev.kunde.name, prev.firma.einleitungAngebot ?? defaultData.firma.einleitungAngebot),
     }));
   }
 
@@ -147,7 +142,7 @@ export default function AngebotEditor({ navigate, params = {}, firma, kunden = [
     setData(prev => ({
       ...prev,
       kunde: { ...prev.kunde, name },
-      einleitung: genEinleitung(prev.kunde.anrede, name, prev.firma.einleitungAngebot ?? defaultData.firma.einleitungAngebot),
+      einleitung: einleitungMitAnrede(prev.kunde.anrede, name, prev.firma.einleitungAngebot ?? defaultData.firma.einleitungAngebot),
     }));
   }
 
@@ -207,11 +202,7 @@ export default function AngebotEditor({ navigate, params = {}, firma, kunden = [
     const f  = data.firma;
     const to = k.email || '';
 
-    const ansprache = k.anrede === 'Herr'
-      ? `Sehr geehrter Herr ${k.name || ''},`
-      : k.anrede === 'Frau'
-        ? `Sehr geehrte Frau ${k.name || ''},`
-        : 'Sehr geehrte Damen und Herren,';
+    const ansprache = briefAnrede(k.anrede, k.name);
 
     const subject = encodeURIComponent(
       `${data.betreff || 'Angebot'} ${data.angebotNr || ''}${k.firma || k.name ? ' – ' + (k.firma || k.name) : ''}`
@@ -326,7 +317,7 @@ export default function AngebotEditor({ navigate, params = {}, firma, kunden = [
       return {
         ...prev,
         kunde,
-        einleitung: genEinleitung(kunde.anrede, kunde.name, prev.firma.einleitungAngebot ?? defaultData.firma.einleitungAngebot),
+        einleitung: einleitungMitAnrede(kunde.anrede, kunde.name, prev.firma.einleitungAngebot ?? defaultData.firma.einleitungAngebot),
       };
     });
   }

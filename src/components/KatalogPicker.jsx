@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { X, BookOpen, Check, PackageSearch } from 'lucide-react';
-
-function fmt(val) {
-  return Number(val || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
+import { formatBetrag } from '../utils/format';
 
 export default function KatalogPicker({ katalog, onAdd, onClose }) {
   const [ausgewaehlt, setAusgewaehlt] = useState(new Set());
@@ -94,7 +91,7 @@ export default function KatalogPicker({ katalog, onAdd, onClose }) {
 
                     {/* Preis */}
                     <div className="text-right flex-shrink-0">
-                      <div className="text-sm font-semibold text-slate-700">{fmt(item.einzelpreis)} €</div>
+                      <div className="text-sm font-semibold text-slate-700">{formatBetrag(item.einzelpreis)} €</div>
                       <div className="text-xs text-slate-400">pro {item.einheit || 'Stk.'}</div>
                     </div>
                   </button>

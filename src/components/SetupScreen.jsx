@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FileText } from 'lucide-react';
-import { apiSetup, saveToken } from '../lib/auth';
+import { apiSetup, saveToken } from '../api/auth';
 
 export default function SetupScreen({ onComplete }) {
   const [username, setUsername] = useState('');

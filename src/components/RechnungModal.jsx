@@ -2,19 +2,13 @@ import { useState } from 'react';
 import { X, Download } from 'lucide-react';
 import FormField, { Input, Textarea } from './FormField';
 import DateInput from './DateInput';
-import { nextRechnungsNr } from '../lib/storage';
-
-function genSalutation(anrede, name, template) {
-  let ansprache;
-  if (anrede === 'Herr')       ansprache = `Sehr geehrter Herr ${name || ''},`;
-  else if (anrede === 'Frau')  ansprache = `Sehr geehrte Frau ${name || ''},`;
-  else                         ansprache = 'Sehr geehrte Damen und Herren,';
-  return `${ansprache}\n\n${template}`;
-}
+import { nextRechnungsNr } from '../utils/angebote';
+import { einleitungMitAnrede } from '../utils/anrede';
+import { heuteDE } from '../utils/datum';
 
 export default function RechnungModal({ data, angebote, fehler, onConfirm, onClose }) {
   const defaultNr    = nextRechnungsNr(angebote);
-  const defaultDatum = new Date().toLocaleDateString('de-DE');
+  const defaultDatum = heuteDE();
   const f            = data.firma;
   const k            = data.kunde;
 
@@ -24,7 +18,7 @@ export default function RechnungModal({ data, angebote, fehler, onConfirm, onClo
   const [datum,        setDatum]        = useState(defaultDatum);
   const [betreff,      setBetreff]      = useState('Rechnung');
   const [einleitung,   setEinleitung]   = useState(
-    () => genSalutation(k.anrede, k.name, template)
+    () => einleitungMitAnrede(k.anrede, k.name, template)
   );
   const [hinweise,     setHinweise]     = useState(
     f.hinweiseRechnung || 'Zahlungsziel: 14 Tage nach Rechnungseingang ohne Abzug.'

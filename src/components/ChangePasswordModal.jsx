@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { apiChangePassword, saveToken } from '../lib/auth';
+import { apiChangePassword, saveToken } from '../api/auth';
 
 export default function ChangePasswordModal({ token, onComplete }) {
   const [password, setPassword] = useState('');

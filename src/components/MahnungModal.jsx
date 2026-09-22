@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { X, AlertTriangle } from 'lucide-react';
 import FormField, { Input, Textarea } from './FormField';
-import DateInput, { add14Days } from './DateInput';
+import DateInput from './DateInput';
+import { add14Days, heuteDE } from '../utils/datum';
+import { briefAnrede } from '../utils/anrede';
 
 const STUFEN = [
   { value: 1, label: 'Zahlungserinnerung', kurztext: 'Zahlungserinnerung' },
@@ -34,17 +36,13 @@ function mahntext(stufe, ansprache, rechnungsNr, rechnungsDatum, frist) {
 export default function MahnungModal({ data, mahnStufeAktuell = 0, vorherigeGebuehren = [], onConfirm, onClose }) {
   const f     = data.firma;
   const k     = data.kunde;
-  const heute = new Date().toLocaleDateString('de-DE');
+  const heute = heuteDE();
   const fristDefault = add14Days(heute);
 
   const naechsteStufe = Math.min(mahnStufeAktuell + 1, 3);
   const mahnNrPrefix  = (data.rechnungsNr || data.angebotNr || 'M').replace(/^[AR]-/, 'M-');
 
-  const ansprache = k.anrede === 'Herr'
-    ? `Sehr geehrter Herr ${k.name || ''},`
-    : k.anrede === 'Frau'
-      ? `Sehr geehrte Frau ${k.name || ''},`
-      : 'Sehr geehrte Damen und Herren,';
+  const ansprache = briefAnrede(k.anrede, k.name);
 
   const [stufe,       setStufe]       = useState(naechsteStufe);
   const [mahnungNr,   setMahnungNr]   = useState(mahnNrPrefix);

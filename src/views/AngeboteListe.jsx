@@ -2,7 +2,8 @@ import { useState, useMemo } from 'react';
 import { Plus, Search, Download, Pencil, Trash2, ChevronDown } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import StatusDropdown from '../components/StatusDropdown';
-import { deleteAngebot, setAngebotStatus, loadAngebotFull } from '../lib/storage';
+import { deleteAngebot, setAngebotStatus, loadAngebotFull } from '../api/angebote';
+import { formatBetrag } from '../utils/format';
 import { generatePDF } from '../lib/pdfGenerator';
 import { STATUS_LIST } from '../lib/statusConfig';
 
@@ -10,10 +11,6 @@ const TABS = [
   { id: 'alle', label: 'Alle' },
   ...STATUS_LIST.map(s => ({ id: s.value, label: s.label })),
 ];
-
-function fmt(num) {
-  return Number(num || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 
 export default function AngeboteListe({ navigate, angebote = [], setAngebote, token, firma }) {
   const [suche, setSuche] = useState('');
@@ -176,7 +173,7 @@ export default function AngeboteListe({ navigate, angebote = [], setAngebote, to
                     {a.betreff || <span className="italic text-slate-300">Kein Betreff</span>}
                   </td>
                   <td className="px-4 py-3.5 text-sm text-slate-500">{a.datum || '—'}</td>
-                  <td className="px-4 py-3.5 text-sm font-semibold text-slate-800 text-right">{fmt(a.brutto)} €</td>
+                  <td className="px-4 py-3.5 text-sm font-semibold text-slate-800 text-right">{formatBetrag(a.brutto)} €</td>
                   <td className="px-4 py-3.5">
                     <StatusDropdown
                       status={a.status || 'entwurf'}

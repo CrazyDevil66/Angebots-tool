@@ -2,11 +2,7 @@ import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { Input, Select } from './FormField';
 import { einheiten } from '../lib/defaultData';
 import { vkPreis, positionGesamt, berechneSummen } from '../../shared/berechnung.js';
-
-function fmt(val) {
-  const n = Number(val) || 0;
-  return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
+import { formatBetrag } from '../utils/format';
 
 export default function PositionenTabelle({ positionen, onChange }) {
   function update(i, field, value) {
@@ -115,14 +111,14 @@ export default function PositionenTabelle({ positionen, onChange }) {
               {/* VK-Preis (berechnet) */}
               <div className="flex items-center justify-end h-9">
                 <span className={`text-sm font-medium ${Number(pos.aufschlag) > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
-                  {fmt(vk)} €
+                  {formatBetrag(vk)} €
                 </span>
               </div>
 
               {/* Gesamt */}
               <div className="flex items-center justify-end h-9">
                 <span className="text-sm font-semibold text-slate-700">
-                  {fmt(gesamt)} €
+                  {formatBetrag(gesamt)} €
                 </span>
               </div>
 
@@ -157,7 +153,7 @@ export default function PositionenTabelle({ positionen, onChange }) {
         <div className="text-sm text-slate-500">
           Netto gesamt:
           <span className="ml-3 font-semibold text-slate-800 text-base">
-            {fmt(netto)} €
+            {formatBetrag(netto)} €
           </span>
         </div>
       </div>

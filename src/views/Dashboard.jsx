@@ -4,17 +4,8 @@ import {
   Users, Plus, ArrowRight, Banknote, Clock, Receipt,
 } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
-
-function fmt(num) {
-  return Number(num || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function parseDEDate(str) {
-  if (!str) return null;
-  const [d, m, y] = str.split('.');
-  if (!d || !m || !y) return null;
-  return new Date(Number(y), Number(m) - 1, Number(d));
-}
+import { formatBetrag } from '../utils/format';
+import { parseDEDate } from '../utils/datum';
 
 function daysSince(deStr) {
   const date = parseDEDate(deStr);
@@ -68,7 +59,7 @@ function MonatsChart({ monate }) {
             />
           </div>
           <span className="text-xs text-slate-500 w-24 text-right font-medium tabular-nums">
-            {m.total > 0 ? `${fmt(m.total)} €` : '—'}
+            {m.total > 0 ? `${formatBetrag(m.total)} €` : '—'}
           </span>
           {m.anzahl > 0 && (
             <span className="text-xs text-slate-300 w-8 text-right">{m.anzahl}×</span>
@@ -151,7 +142,7 @@ export default function Dashboard({ navigate, angebote = [], kunden = [] }) {
         prio:  'hoch',
         icon:  AlertTriangle,
         titel: `${a.rechnungsNr || a.angebotNr} — ${a.kundeDisplay || '—'}`,
-        info:  `Mahnstufe ${a.mahnStufe || '—'} · ${fmt(a.brutto)} €`,
+        info:  `Mahnstufe ${a.mahnStufe || '—'} · ${formatBetrag(a.brutto)} €`,
       }));
 
     angebote
@@ -164,7 +155,7 @@ export default function Dashboard({ navigate, angebote = [], kunden = [] }) {
             prio:  tage > 30 ? 'hoch' : 'mittel',
             icon:  Clock,
             titel: `${a.rechnungsNr} — ${a.kundeDisplay || '—'}`,
-            info:  `Rechnung seit ${tage} Tagen unbezahlt · ${fmt(a.brutto)} €`,
+            info:  `Rechnung seit ${tage} Tagen unbezahlt · ${formatBetrag(a.brutto)} €`,
           });
         }
       });
@@ -205,14 +196,14 @@ export default function Dashboard({ navigate, angebote = [], kunden = [] }) {
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           <KpiCard
             label="Bezahlter Umsatz"
-            value={`${fmt(stats.bezahltSum)} €`}
+            value={`${formatBetrag(stats.bezahltSum)} €`}
             sub={`${stats.bezahltAnz} Rechnung${stats.bezahltAnz !== 1 ? 'en' : ''} bezahlt`}
             icon={Banknote}
             accent="teal"
           />
           <KpiCard
             label="Offene Rechnungen"
-            value={`${fmt(stats.offenSum)} €`}
+            value={`${formatBetrag(stats.offenSum)} €`}
             sub={`${stats.offenAnz} ausstehend`}
             icon={Receipt}
             accent="amber"
@@ -343,7 +334,7 @@ export default function Dashboard({ navigate, angebote = [], kunden = [] }) {
                       {a.savedAt ? new Date(a.savedAt).toLocaleDateString('de-DE') : '—'}
                     </td>
                     <td className="px-5 py-3.5 text-sm font-semibold text-slate-800 text-right tabular-nums">
-                      {fmt(a.brutto)} €
+                      {formatBetrag(a.brutto)} €
                     </td>
                     <td className="px-5 py-3.5">
                       <StatusBadge status={a.status || 'entwurf'} />
