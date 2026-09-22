@@ -1,7 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
+const { dataDir } = require('../paths');
+
+const DATA_DIR = dataDir();
 const VALID_TYPES = new Set(['firma', 'kunden', 'katalog']);
 
 function dataFile(type) {

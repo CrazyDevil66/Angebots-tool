@@ -7,7 +7,7 @@ const os = require('os');
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'angebote-test-'));
 process.env.DATA_DIR = tmpDir;
 
-const store = require('./angeboteStore');
+const store = require('./angebote');
 
 after(() => fs.rmSync(tmpDir, { recursive: true }));
 

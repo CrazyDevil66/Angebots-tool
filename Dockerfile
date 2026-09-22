@@ -13,6 +13,7 @@ COPY server/package*.json ./server/
 RUN cd server && npm ci --omit=dev
 COPY --from=frontend-builder /app/dist ./dist
 COPY server/ ./server/
+COPY shared/ ./shared/
 RUN mkdir -p /app/data
 VOLUME /app/data
 EXPOSE 3000

@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const auth = require('./auth');
+const auth = require('./loginSperre');
 
 test('neue IP ist nicht gesperrt', () => {
   assert.equal(auth.checkLockout('10.0.0.1'), false);

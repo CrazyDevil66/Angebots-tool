@@ -1,17 +1,5 @@
 const nodemailer = require('nodemailer');
-const fs = require('fs');
-const path = require('path');
-
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
-const CONFIG_FILE = () => path.join(DATA_DIR, 'config.json');
-
-function readConfig() {
-  try {
-    const f = CONFIG_FILE();
-    if (!fs.existsSync(f)) return {};
-    return JSON.parse(fs.readFileSync(f, 'utf8'));
-  } catch { return {}; }
-}
+const { readConfig } = require('../config');
 
 function getSmtpConfig() {
   return readConfig().smtp || null;

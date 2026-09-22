@@ -3,8 +3,9 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
-const USERS_FILE = () => path.join(DATA_DIR, 'users.json');
+const { dataDir } = require('../paths');
+
+const USERS_FILE = () => path.join(dataDir(), 'users.json');
 
 function readUsers() {
   try {
@@ -15,7 +16,7 @@ function readUsers() {
 }
 
 function writeUsers(users) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(dataDir(), { recursive: true });
   fs.writeFileSync(USERS_FILE(), JSON.stringify(users, null, 2));
 }
 

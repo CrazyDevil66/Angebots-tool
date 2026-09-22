@@ -1,10 +1,11 @@
-// server/angeboteStore.js
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { berechneSummen } = require('../shared/berechnung.js');
+const { berechneSummen } = require('../../shared/berechnung.js');
+const { dataDir } = require('../paths');
+const { httpFehler } = require('../lib/fehler');
 
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
+const DATA_DIR = dataDir();
 const ANGEBOTE_DIR = path.join(DATA_DIR, 'angebote');
 const INDEX_FILE = path.join(ANGEBOTE_DIR, 'index.json');
 
@@ -108,7 +109,7 @@ function createOffer(data) {
 
 function updateOffer(id, data, status) {
   const existing = readOffer(id);
-  if (!existing) throw new Error(`Angebot ${id} nicht gefunden`);
+  if (!existing) throw httpFehler(404, `Angebot ${id} nicht gefunden`);
   const snapshot = stripLogo(data);
   const meta = buildMetadata(id, data, status, {
     savedAt:             existing.savedAt,
@@ -133,14 +134,12 @@ function updateOffer(id, data, status) {
 function pruefeRechnungsNrFrei(id, rechnungsNr) {
   const belegt = readIndex().find(e => e.id !== id && e.rechnungsNr === rechnungsNr);
   if (!belegt) return;
-  const err = new Error(`Rechnungsnummer ${rechnungsNr} ist bereits vergeben (Angebot ${belegt.angebotNr})`);
-  err.status = 409;
-  throw err;
+  throw httpFehler(409, `Rechnungsnummer ${rechnungsNr} ist bereits vergeben (Angebot ${belegt.angebotNr})`);
 }
 
 function patchOffer(id, patch) {
   const existing = readOffer(id);
-  if (!existing) throw new Error(`Angebot ${id} nicht gefunden`);
+  if (!existing) throw httpFehler(404, `Angebot ${id} nicht gefunden`);
   const { snapshot, ...meta } = existing;
   const { id: _id, savedAt: _savedAt, snapshot: _snap, ...safePatch } = patch;
   if (safePatch.rechnungsNr) pruefeRechnungsNrFrei(id, safePatch.rechnungsNr);
