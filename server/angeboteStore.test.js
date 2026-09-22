@@ -184,3 +184,21 @@ test('recalcBrutto: korrigiert gespeicherte Beträge ohne Aufschlag', () => {
   assert.ok(Math.abs(korrigiert.brutto - 357) < 0.01);
   assert.equal(store.readOffer(entry.id).netto, 300);
 });
+
+test('patchOffer: doppelte Rechnungsnummer wird mit Status 409 abgelehnt', () => {
+  const a = store.createOffer(sampleData).entry;
+  const b = store.createOffer(sampleData).entry;
+  store.patchOffer(a.id, { rechnungsNr: 'R-2026-900' });
+  assert.throws(
+    () => store.patchOffer(b.id, { rechnungsNr: 'R-2026-900' }),
+    e => e.status === 409 && /R-2026-900/.test(e.message)
+  );
+  assert.equal(store.readOffer(b.id).rechnungsNr, null);
+});
+
+test('patchOffer: eigene Rechnungsnummer erneut setzen ist erlaubt', () => {
+  const a = store.createOffer(sampleData).entry;
+  store.patchOffer(a.id, { rechnungsNr: 'R-2026-901' });
+  store.patchOffer(a.id, { rechnungsNr: 'R-2026-901', status: 'bezahlt' });
+  assert.equal(store.readOffer(a.id).status, 'bezahlt');
+});

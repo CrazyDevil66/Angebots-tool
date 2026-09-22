@@ -12,8 +12,8 @@ function genSalutation(anrede, name, template) {
   return `${ansprache}\n\n${template}`;
 }
 
-export default function RechnungModal({ data, onConfirm, onClose }) {
-  const defaultNr    = nextRechnungsNr();
+export default function RechnungModal({ data, angebote, fehler, onConfirm, onClose }) {
+  const defaultNr    = nextRechnungsNr(angebote);
   const defaultDatum = new Date().toLocaleDateString('de-DE');
   const f            = data.firma;
   const k            = data.kunde;
@@ -54,6 +54,11 @@ export default function RechnungModal({ data, onConfirm, onClose }) {
 
         {/* Body */}
         <div className="p-6 flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
+          {fehler && (
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-3 py-2">
+              {fehler}
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Rechnungsnummer">
               <Input value={rechnungsNr} onChange={e => setRechnungsNr(e.target.value)} />

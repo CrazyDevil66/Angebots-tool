@@ -91,6 +91,7 @@ export default function AngebotEditor({ navigate, params = {}, firma, kunden = [
   const [pdfLoading, setPdfLoading] = useState(false);
   const [savedHint, setSavedHint] = useState(false);
   const [rechnungModalOffen, setRechnungModalOffen] = useState(false);
+  const [rechnungFehler, setRechnungFehler] = useState(null);
   const [mahnModalOffen,    setMahnModalOffen]    = useState(false);
   const [katalogPickerOffen, setKatalogPickerOffen] = useState(false);
   const savedTimer = useRef(null);
@@ -229,24 +230,30 @@ export default function AngebotEditor({ navigate, params = {}, firma, kunden = [
   }
 
   async function handleRechnungBestaetigt({ rechnungsNr: nr, datum: rDatum, betreff: rBetreff, einleitung: rEinleitung, hinweise: rHinweise }) {
+    setRechnungFehler(null);
+    try {
+      let id = aktivesId;
+      if (!id) {
+        const { eintrag, updated } = await saveAngebot(token, data);
+        id = eintrag.id;
+        setAktivesId(id);
+        setAngebote(updated);
+      }
+      await setAngebotStatus(token, id, 'angenommen');
+      setStatus('angenommen');
+      const updated = await setAngebotRechnung(token, id, nr, rDatum, rBetreff, rEinleitung, rHinweise);
+      setAngebote(updated);
+    } catch (e) {
+      setRechnungFehler(e.message);
+      return;
+    }
+
     setRechnungModalOffen(false);
     setRechnungsNr(nr);
     setRechnungsDatum(rDatum);
     setRechnungsBetreff(rBetreff);
     setRechnungsEinleitung(rEinleitung);
     setRechnungsHinweise(rHinweise);
-
-    let id = aktivesId;
-    if (!id) {
-      const { eintrag, updated } = await saveAngebot(token, data);
-      id = eintrag.id;
-      setAktivesId(id);
-      setAngebote(updated);
-    }
-    await setAngebotStatus(token, id, 'angenommen');
-    const updated = await setAngebotRechnung(token, id, nr, rDatum, rBetreff, rEinleitung, rHinweise);
-    setAngebote(updated);
-    setStatus('angenommen');
 
     const rechnungData = {
       ...data,
@@ -610,8 +617,10 @@ export default function AngebotEditor({ navigate, params = {}, firma, kunden = [
       {rechnungModalOffen && (
         <RechnungModal
           data={data}
+          angebote={angebote}
+          fehler={rechnungFehler}
           onConfirm={handleRechnungBestaetigt}
-          onClose={() => setRechnungModalOffen(false)}
+          onClose={() => { setRechnungModalOffen(false); setRechnungFehler(null); }}
         />
       )}
 

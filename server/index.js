@@ -338,7 +338,7 @@ app.patch('/api/angebote/:id', requireAuth, (req, res) => {
     broadcastDataUpdate('angebote', res);
     res.json({ index });
   } catch (e) {
-    res.status(e.message.includes('nicht gefunden') ? 404 : 500).json({ error: e.message });
+    res.status(e.status || (e.message.includes('nicht gefunden') ? 404 : 500)).json({ error: e.message });
   }
 });
 

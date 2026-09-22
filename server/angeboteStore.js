@@ -130,11 +130,20 @@ function updateOffer(id, data, status) {
   return index;
 }
 
+function pruefeRechnungsNrFrei(id, rechnungsNr) {
+  const belegt = readIndex().find(e => e.id !== id && e.rechnungsNr === rechnungsNr);
+  if (!belegt) return;
+  const err = new Error(`Rechnungsnummer ${rechnungsNr} ist bereits vergeben (Angebot ${belegt.angebotNr})`);
+  err.status = 409;
+  throw err;
+}
+
 function patchOffer(id, patch) {
   const existing = readOffer(id);
   if (!existing) throw new Error(`Angebot ${id} nicht gefunden`);
   const { snapshot, ...meta } = existing;
   const { id: _id, savedAt: _savedAt, snapshot: _snap, ...safePatch } = patch;
+  if (safePatch.rechnungsNr) pruefeRechnungsNrFrei(id, safePatch.rechnungsNr);
   const { netto, brutto } = summen(snapshot);
   const newMeta = { ...meta, ...safePatch, netto, brutto, updatedAt: new Date().toISOString() };
   writeOffer(id, { ...newMeta, snapshot });

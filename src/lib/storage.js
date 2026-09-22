@@ -1,10 +1,17 @@
+export { nextAngebotNr, nextRechnungsNr } from '../../shared/nummern.js';
+
 // ── HTTP-Helfer ───────────────────────────────────────────────────────────────
+
+async function fehlerAusAntwort(res, beschreibung) {
+  const body = await res.json().catch(() => null);
+  return new Error(body?.error || `${beschreibung} fehlgeschlagen (${res.status})`);
+}
 
 async function apiGet(token, endpoint) {
   const res = await fetch(`/api${endpoint}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!res.ok) throw new Error(`GET ${endpoint} fehlgeschlagen (${res.status})`);
+  if (!res.ok) throw await fehlerAusAntwort(res, `GET ${endpoint}`);
   return res.json();
 }
 
@@ -14,7 +21,7 @@ async function apiPost(token, endpoint, body) {
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`POST ${endpoint} fehlgeschlagen (${res.status})`);
+  if (!res.ok) throw await fehlerAusAntwort(res, `POST ${endpoint}`);
   return res.json();
 }
 
@@ -24,7 +31,7 @@ async function apiPut(token, endpoint, body) {
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`PUT ${endpoint} fehlgeschlagen (${res.status})`);
+  if (!res.ok) throw await fehlerAusAntwort(res, `PUT ${endpoint}`);
   return res.json();
 }
 
@@ -34,7 +41,7 @@ async function apiPatch(token, endpoint, body) {
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`PATCH ${endpoint} fehlgeschlagen (${res.status})`);
+  if (!res.ok) throw await fehlerAusAntwort(res, `PATCH ${endpoint}`);
   return res.json();
 }
 
@@ -43,7 +50,7 @@ async function apiDelete(token, endpoint) {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!res.ok) throw new Error(`DELETE ${endpoint} fehlgeschlagen (${res.status})`);
+  if (!res.ok) throw await fehlerAusAntwort(res, `DELETE ${endpoint}`);
   return res.json();
 }
 
@@ -128,32 +135,6 @@ export async function setAngebotRechnung(token, id, rechnungsNr, rechnungsDatum,
 }
 
 // ── Pure Helper-Funktionen ────────────────────────────────────────────────────
-
-export function nextAngebotNr(angebote) {
-  const year = new Date().getFullYear();
-  const prefix = `A-${year}-`;
-  let max = 0;
-  for (const a of angebote) {
-    if (a.angebotNr?.startsWith(prefix)) {
-      const n = parseInt(a.angebotNr.slice(prefix.length), 10);
-      if (!isNaN(n) && n > max) max = n;
-    }
-  }
-  return `${prefix}${String(max + 1).padStart(3, '0')}`;
-}
-
-export function nextRechnungsNr(angebote = []) {
-  const year = new Date().getFullYear();
-  const prefix = `R-${year}-`;
-  let max = 0;
-  for (const a of angebote) {
-    if (a.rechnungsNr?.startsWith(prefix)) {
-      const n = parseInt(a.rechnungsNr.slice(prefix.length), 10);
-      if (!isNaN(n) && n > max) max = n;
-    }
-  }
-  return `${prefix}${String(max + 1).padStart(3, '0')}`;
-}
 
 function parseDEDate(str) {
   if (!str) return null;
