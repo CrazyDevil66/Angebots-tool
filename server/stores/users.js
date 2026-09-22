@@ -50,8 +50,12 @@ async function createUser({ username, email = null, role = 'user' }) {
   return user;
 }
 
-async function setPassword(id, password) {
+function pruefePasswort(password) {
   if (!password || password.length < 8) throw new Error('Passwort muss mindestens 8 Zeichen haben');
+}
+
+async function setPassword(id, password) {
+  pruefePasswort(password);
   const all = readUsers();
   const idx = all.findIndex(u => u.id === id);
   if (idx === -1) throw new Error('Benutzer nicht gefunden');
@@ -109,6 +113,25 @@ function deleteUser(id) {
   writeUsers(all.filter(u => u.id !== id));
 }
 
+// Eingerichtet ist die App erst, wenn sich jemand anmelden kann.
+function istEingerichtet() {
+  return readUsers().some(u => u.passwordHash);
+}
+
+// Erstkonfiguration: Passwort wird vor jeder Änderung geprüft. Ein bereits
+// vorhandener Benutzer ohne Passwort (z.B. aus einem abgebrochenen Setup)
+// wird übernommen statt doppelt angelegt.
+async function richteErstenAdminEin(username, password) {
+  if (istEingerichtet()) throw new Error('Bereits eingerichtet');
+  pruefePasswort(password);
+  const vorhanden = findByUsername(username);
+  const user = vorhanden
+    ? updateUser(vorhanden.id, { role: 'admin' })
+    : await createUser({ username, role: 'admin' });
+  await setPassword(user.id, password);
+  return toPublicUser(findById(user.id));
+}
+
 function toPublicUser(u) {
   if (!u) return null;
   const { passwordHash, inviteToken, inviteExpiry, ...pub } = u;
@@ -125,5 +148,5 @@ module.exports = {
   readUsers, findById, findByUsername, findByInviteToken,
   createUser, setPassword, setInitialPassword,
   generateInviteToken, updateUser, deleteUser, verifyPassword,
-  toPublicUser,
+  toPublicUser, pruefePasswort, istEingerichtet, richteErstenAdminEin,
 };

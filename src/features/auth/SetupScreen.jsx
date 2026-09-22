@@ -11,6 +11,7 @@ export default function SetupScreen({ onComplete }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (password.length < 8) return setError('Passwort muss mindestens 8 Zeichen haben.');
     if (password !== confirm) return setError('Passwörter stimmen nicht überein.');
     setError('');
     setLoading(true);
@@ -53,7 +54,7 @@ export default function SetupScreen({ onComplete }) {
 
           {[
             { label: 'Benutzername', value: username, set: setUsername, type: 'text', placeholder: 'admin' },
-            { label: 'Passwort', value: password, set: setPassword, type: 'password', placeholder: '••••••••' },
+            { label: 'Passwort', value: password, set: setPassword, type: 'password', placeholder: 'Mindestens 8 Zeichen' },
             { label: 'Passwort bestätigen', value: confirm, set: setConfirm, type: 'password', placeholder: '••••••••' },
           ].map(({ label, value, set, type, placeholder }) => (
             <div key={label} className="mb-4">

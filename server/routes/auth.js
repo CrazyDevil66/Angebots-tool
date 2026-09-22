@@ -6,17 +6,16 @@ const { makeToken, requireAuth } = require('../middleware/auth');
 const router = express.Router();
 
 router.get('/setup', (_req, res) => {
-  res.json({ setupRequired: users.readUsers().length === 0 });
+  res.json({ setupRequired: !users.istEingerichtet() });
 });
 
 router.post('/setup', async (req, res) => {
-  if (users.readUsers().length > 0) return res.status(400).json({ error: 'Bereits eingerichtet' });
+  if (users.istEingerichtet()) return res.status(400).json({ error: 'Bereits eingerichtet' });
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'Benutzername und Passwort erforderlich' });
   try {
-    const user = await users.createUser({ username, role: 'admin' });
-    await users.setPassword(user.id, password);
-    res.json({ token: makeToken(users.findById(user.id)) });
+    const user = await users.richteErstenAdminEin(username, password);
+    res.json({ token: makeToken(user) });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
