@@ -4,7 +4,7 @@ import StatusBadge from '../components/StatusBadge';
 import StatusDropdown from '../components/StatusDropdown';
 import { deleteAngebot, setAngebotStatus, loadAngebotFull } from '../api/angebote';
 import { formatBetrag } from '../utils/format';
-import { generatePDF } from '../lib/pdfGenerator';
+import { generatePDF } from '../pdf/generatePDF';
 import { STATUS_LIST } from '../lib/statusConfig';
 
 const TABS = [

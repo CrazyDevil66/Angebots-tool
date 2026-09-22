@@ -1,16 +1,8 @@
 import { FileText } from 'lucide-react';
 import { vkPreis, positionGesamt, berechneSummen } from '../../shared/berechnung.js';
 import { formatBetrag } from '../utils/format';
+import { MARKENFARBEN as C } from '../lib/markenfarben';
 
-const C = {
-  dark:      '#2D3342',
-  yellow:    '#E8B800',
-  textDark:  '#1E2130',
-  textMid:   '#4A5568',
-  textLight: '#8896A8',
-  bgLight:   '#F8FAFC',
-  border:    '#E2E8F0',
-};
 
 const ROWS_FIRST_PAGE = 8;
 const ROWS_PER_PAGE   = 15;

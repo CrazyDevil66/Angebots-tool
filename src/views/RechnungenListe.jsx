@@ -3,7 +3,7 @@ import { Search, Download, Pencil, ChevronDown } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import { loadAngebotFull } from '../api/angebote';
 import { formatBetrag } from '../utils/format';
-import { generatePDF } from '../lib/pdfGenerator';
+import { generatePDF } from '../pdf/generatePDF';
 import { getStatus } from '../lib/statusConfig';
 
 const RECHNUNGS_STATUS = ['angenommen', 'gemahnt', 'bezahlt'];

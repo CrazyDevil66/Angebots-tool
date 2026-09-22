@@ -1,4 +1,4 @@
-const C = { dark: '#2D3342', yellow: '#E8B800' };
+import { MARKENFARBEN as C } from '../lib/markenfarben';
 
 function PreviewRow({ label, value }) {
   if (!value) return null;

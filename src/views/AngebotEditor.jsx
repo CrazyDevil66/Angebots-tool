@@ -14,7 +14,7 @@ import KundenPicker from '../components/KundenPicker';
 import RechnungModal from '../components/RechnungModal';
 import MahnungModal from '../components/MahnungModal';
 import KatalogPicker from '../components/KatalogPicker';
-import { generatePDF } from '../lib/pdfGenerator';
+import { generatePDF } from '../pdf/generatePDF';
 import { defaultData } from '../lib/defaultData';
 import {
   saveAngebot, updateAngebot, setAngebotStatus,
