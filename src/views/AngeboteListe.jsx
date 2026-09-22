@@ -5,6 +5,7 @@ import StatusDropdown from '../components/StatusDropdown';
 import { deleteAngebot, setAngebotStatus, loadAngebotFull } from '../api/angebote';
 import { formatBetrag } from '../utils/format';
 import { generatePDF } from '../pdf/generatePDF';
+import { rechnungsDokument } from '../utils/angebote';
 import { STATUS_LIST } from '../lib/statusConfig';
 
 const TABS = [
@@ -61,14 +62,7 @@ export default function AngeboteListe({ navigate, angebote = [], setAngebote, to
       const full = await loadAngebotFull(token, a.id);
       const snapshot = { ...full.snapshot, firma };
       if (a.rechnungsNr) {
-        await generatePDF({
-          ...snapshot,
-          rechnungsNr:    a.rechnungsNr,
-          rechnungsDatum: a.rechnungsDatum,
-          betreff:        a.rechnungsBetreff    ?? snapshot.betreff,
-          einleitung:     a.rechnungsEinleitung ?? snapshot.einleitung,
-          hinweise:       a.rechnungsHinweise   ?? snapshot.hinweise,
-        }, 'rechnung');
+        await generatePDF(rechnungsDokument(snapshot, a), 'rechnung');
       } else {
         await generatePDF(snapshot);
       }

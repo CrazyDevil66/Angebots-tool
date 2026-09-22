@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { X, Download } from 'lucide-react';
-import FormField, { Input, Textarea } from './FormField';
-import DateInput from './DateInput';
-import { nextRechnungsNr } from '../utils/angebote';
-import { einleitungMitAnrede } from '../utils/anrede';
-import { heuteDE } from '../utils/datum';
+import FormField, { Input, Textarea } from '../../components/FormField';
+import DateInput from '../../components/DateInput';
+import { nextRechnungsNr } from '../../utils/angebote';
+import { einleitungMitAnrede } from '../../utils/anrede';
+import { heuteDE } from '../../utils/datum';
 
 export default function RechnungModal({ data, angebote, fehler, onConfirm, onClose }) {
   const defaultNr    = nextRechnungsNr(angebote);

@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './views/Dashboard';
 import AngeboteListe from './views/AngeboteListe';
-import AngebotEditor from './views/AngebotEditor';
+import AngebotEditor from './features/angebot-editor/AngebotEditor';
 import RechnungenListe from './views/RechnungenListe';
 import KundenListe from './views/KundenListe';
 import Einstellungen from './views/Einstellungen';

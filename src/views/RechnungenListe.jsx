@@ -4,6 +4,7 @@ import StatusBadge from '../components/StatusBadge';
 import { loadAngebotFull } from '../api/angebote';
 import { formatBetrag } from '../utils/format';
 import { generatePDF } from '../pdf/generatePDF';
+import { rechnungsDokument } from '../utils/angebote';
 import { getStatus } from '../lib/statusConfig';
 
 const RECHNUNGS_STATUS = ['angenommen', 'gemahnt', 'bezahlt'];
@@ -57,14 +58,7 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma 
     try {
       const full = await loadAngebotFull(token, a.id);
       const snapshot = { ...full.snapshot, firma };
-      await generatePDF({
-        ...snapshot,
-        rechnungsNr:    a.rechnungsNr,
-        rechnungsDatum: a.rechnungsDatum,
-        betreff:        a.rechnungsBetreff    ?? snapshot.betreff,
-        einleitung:     a.rechnungsEinleitung ?? snapshot.einleitung,
-        hinweise:       a.rechnungsHinweise   ?? snapshot.hinweise,
-      }, 'rechnung');
+      await generatePDF(rechnungsDokument(snapshot, a), 'rechnung');
     } catch (e) { console.error(e); }
     finally { setPdfLoading(null); }
   }

@@ -1,7 +1,7 @@
 import { FileText } from 'lucide-react';
-import { vkPreis, positionGesamt, berechneSummen } from '../../shared/berechnung.js';
-import { formatBetrag } from '../utils/format';
-import { MARKENFARBEN as C } from '../lib/markenfarben';
+import { vkPreis, positionGesamt, berechneSummen } from '../../../shared/berechnung.js';
+import { formatBetrag } from '../../utils/format';
+import { MARKENFARBEN as C } from '../../lib/markenfarben';
 
 
 const ROWS_FIRST_PAGE = 8;

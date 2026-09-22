@@ -1,8 +1,8 @@
 import { Plus, Trash2, GripVertical } from 'lucide-react';
-import { Input, Select } from './FormField';
-import { einheiten } from '../lib/defaultData';
-import { vkPreis, positionGesamt, berechneSummen } from '../../shared/berechnung.js';
-import { formatBetrag } from '../utils/format';
+import { Input, Select } from '../../components/FormField';
+import { einheiten } from '../../lib/defaultData';
+import { vkPreis, positionGesamt, berechneSummen } from '../../../shared/berechnung.js';
+import { formatBetrag } from '../../utils/format';
 
 export default function PositionenTabelle({ positionen, onChange }) {
   function update(i, field, value) {

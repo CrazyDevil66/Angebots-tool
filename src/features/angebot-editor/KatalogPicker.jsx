@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, BookOpen, Check, PackageSearch } from 'lucide-react';
-import { formatBetrag } from '../utils/format';
+import { formatBetrag } from '../../utils/format';
 
 export default function KatalogPicker({ katalog, onAdd, onClose }) {
   const [ausgewaehlt, setAusgewaehlt] = useState(new Set());

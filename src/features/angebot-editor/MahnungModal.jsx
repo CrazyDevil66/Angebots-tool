@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { X, AlertTriangle } from 'lucide-react';
-import FormField, { Input, Textarea } from './FormField';
-import DateInput from './DateInput';
-import { add14Days, heuteDE } from '../utils/datum';
-import { briefAnrede } from '../utils/anrede';
+import FormField, { Input, Textarea } from '../../components/FormField';
+import DateInput from '../../components/DateInput';
+import { add14Days, heuteDE } from '../../utils/datum';
+import { briefAnrede } from '../../utils/anrede';
 
 const STUFEN = [
   { value: 1, label: 'Zahlungserinnerung', kurztext: 'Zahlungserinnerung' },
