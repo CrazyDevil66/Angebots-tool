@@ -36,7 +36,7 @@ export default function Einstellungen({ token, currentUser, onLogout, firma, set
       triggerSaved();
     }, 500);
     return () => clearTimeout(saveTimer.current);
-  }, [firma]);
+  }, [firma, token]);
 
   const set = (field, val) => setFirma(prev => ({ ...prev, [field]: val }));
   const istAdmin = currentUser?.role === 'admin';

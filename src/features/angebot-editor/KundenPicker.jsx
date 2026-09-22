@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search, BookUser, X, UserCheck } from 'lucide-react';
+import { Search, BookUser, UserCheck } from 'lucide-react';
 
 export default function KundenPicker({ onSelect, onManage, kunden = [] }) {
   const [open, setOpen] = useState(false);

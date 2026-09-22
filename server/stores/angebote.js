@@ -194,7 +194,7 @@ function migrateIfNeeded() {
   if (!fs.existsSync(oldFile)) return;
   if (fs.existsSync(INDEX_FILE)) return;
 
-  let oldAngebote = [];
+  let oldAngebote;
   try {
     oldAngebote = JSON.parse(fs.readFileSync(oldFile, 'utf8'));
     if (!Array.isArray(oldAngebote)) return;

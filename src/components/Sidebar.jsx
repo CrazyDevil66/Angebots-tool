@@ -7,7 +7,7 @@ const MAIN_NAV = [
   { id: 'kunden',      label: 'Kunden',     icon: Users },
 ];
 
-function NavItem({ id, label, icon: Icon, active, count, onClick }) {
+function NavItem({ label, icon: Icon, active, count, onClick }) {
   return (
     <button
       onClick={onClick}

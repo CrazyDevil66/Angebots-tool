@@ -45,7 +45,9 @@ export default function BenutzerVerwaltung({ token, currentUser }) {
     setUserList(Array.isArray(data) ? data : []);
   }, [token]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    apiGetUsers(token).then(data => setUserList(Array.isArray(data) ? data : []));
+  }, [token]);
 
   async function handleCreate(mode) {
     if (!username.trim()) return setError('Benutzername darf nicht leer sein.');

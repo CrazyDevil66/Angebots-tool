@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import {
   TrendingUp, FileText, AlertTriangle, CheckCircle2,
-  Users, Plus, ArrowRight, Banknote, Clock, Receipt,
+  Plus, ArrowRight, Banknote, Clock, Receipt,
 } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import { formatBetrag } from '../utils/format';

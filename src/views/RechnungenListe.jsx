@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { Search, Download, Pencil, ChevronDown } from 'lucide-react';
-import StatusBadge from '../components/StatusBadge';
 import { loadAngebotFull } from '../api/angebote';
 import { formatBetrag } from '../utils/format';
 import { generatePDF } from '../pdf/generatePDF';

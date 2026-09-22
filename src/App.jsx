@@ -16,6 +16,10 @@ import { apiSetupRequired, apiMe, getToken, saveToken, clearToken } from './api/
 import { autoMarkAbgelaufen } from './utils/angebote';
 import { defaultData } from './lib/defaultData';
 
+function istEinladungsLink() {
+  return /^\/invite\/(.+)$/.test(window.location.pathname);
+}
+
 function parseJwt(token) {
   try {
     return JSON.parse(atob(token.split('.')[1]));
@@ -23,7 +27,8 @@ function parseJwt(token) {
 }
 
 export default function App() {
-  const [auth, setAuth] = useState({ loading: true, setupRequired: false, token: null, user: null });
+  // Einladungslinks brauchen keinen Login-Check – dort wird direkt der InviteScreen gezeigt.
+  const [auth, setAuth] = useState(() => ({ loading: !istEinladungsLink(), setupRequired: false, token: null, user: null }));
   const [nav, setNav] = useState({ view: 'dashboard', params: {} });
 
   const [firma,    setFirma]    = useState(null);
@@ -71,11 +76,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    const inviteMatch = window.location.pathname.match(/^\/invite\/(.+)$/);
-    if (inviteMatch) {
-      setAuth({ loading: false, setupRequired: false, token: null, user: null });
-      return;
-    }
+    if (istEinladungsLink()) return;
     (async () => {
       const setupRequired = await apiSetupRequired();
       if (setupRequired) {

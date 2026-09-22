@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { Plus, Search, Download, Pencil, Trash2, ChevronDown } from 'lucide-react';
-import StatusBadge from '../components/StatusBadge';
 import StatusDropdown from '../components/StatusDropdown';
 import { deleteAngebot, setAngebotStatus, loadAngebotFull } from '../api/angebote';
 import { formatBetrag } from '../utils/format';

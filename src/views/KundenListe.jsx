@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import {
-  Plus, Search, Pencil, Trash2, X, UserCheck, Users,
-  TrendingUp, FileText, ChevronRight, FolderOpen
+  Plus, Search, Pencil, Trash2, X, UserCheck, Users, ChevronRight,
 } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import FormField, { Input } from '../components/FormField';
