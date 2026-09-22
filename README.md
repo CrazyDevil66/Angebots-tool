@@ -52,8 +52,12 @@ docker run -d \
 Alle Daten werden im Container-Pfad `/app/data` gespeichert:
 
 - `users.json` – Benutzerdaten
-- `config.json` – App-Konfiguration und JWT-Secret
-- `angebote.json`, `kunden.json` usw. – Anwendungsdaten
+- `config.json` – App-Konfiguration, SMTP-Einstellungen und JWT-Secret
+- `firma.json`, `kunden.json`, `katalog.json` – Stammdaten
+- `angebote/` – ein JSON pro Angebot plus `index.json`
+- `backups/` – automatische Sicherung des alten Stands vor jedem Backup-Import
+
+Über **Einstellungen → Datensicherung** (nur Admins) lassen sich alle Daten als JSON exportieren und wieder importieren. Ein Import ersetzt den kompletten Datenbestand.
 
 Der Host-Pfad `/mnt/user/appdata/angebots-tool` (oder ein beliebiger anderer Pfad) muss als Volume eingebunden werden, damit die Daten bei Container-Updates erhalten bleiben.
 
@@ -68,6 +72,17 @@ Beim ersten Aufruf der App wird ein **Erstkonfigurations-Assistent** gestartet, 
 - **Auth:** JWT mit automatisch generiertem Secret
 - **PDF:** @react-pdf/renderer
 - **Container:** Docker (Node.js 22 Alpine)
+
+## Projektstruktur
+
+```
+shared/     Preisberechnung und Nummernvergabe – von Server und Frontend genutzt
+server/     index.js (Start), routes/, middleware/, stores/ (Dateizugriff), lib/
+src/        api/ (Server-Aufrufe), features/ (Angebots-Editor, Einstellungen, Auth),
+            views/ (Listen, Dashboard), components/, pdf/, utils/, lib/
+```
+
+Tests: `npm test` · Lint: `npm run lint`
 
 ## Lizenz
 
