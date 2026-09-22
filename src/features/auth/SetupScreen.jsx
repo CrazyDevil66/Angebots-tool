@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { FileText } from 'lucide-react';
-import { apiRedeemInvite, saveToken } from '../api/auth';
+import { apiSetup, saveToken } from '../../api/auth';
 
-export default function InviteScreen({ inviteToken, onComplete }) {
+export default function SetupScreen({ onComplete }) {
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
@@ -14,9 +15,8 @@ export default function InviteScreen({ inviteToken, onComplete }) {
     setError('');
     setLoading(true);
     try {
-      const { token } = await apiRedeemInvite(inviteToken, password);
+      const { token } = await apiSetup(username, password);
       saveToken(token);
-      window.history.pushState({}, '', '/');
       onComplete(token);
     } catch (err) {
       setError(err.message);
@@ -42,8 +42,8 @@ export default function InviteScreen({ inviteToken, onComplete }) {
             </div>
           </div>
 
-          <h1 className="text-lg font-bold text-white mb-1">Passwort setzen</h1>
-          <p className="text-slate-400 text-sm mb-6">Wähle ein Passwort für deinen neuen Account.</p>
+          <h1 className="text-lg font-bold text-white mb-1">Erstkonfiguration</h1>
+          <p className="text-slate-400 text-sm mb-6">Lege den ersten Admin-Account an.</p>
 
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2 text-red-300 text-xs mb-4">
@@ -51,32 +51,32 @@ export default function InviteScreen({ inviteToken, onComplete }) {
             </div>
           )}
 
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Passwort</label>
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-white text-sm mb-4 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-            placeholder="Mindestens 8 Zeichen"
-            required
-          />
-
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Bestätigen</label>
-          <input
-            type="password"
-            value={confirm}
-            onChange={e => setConfirm(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-white text-sm mb-6 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-            placeholder="••••••••"
-            required
-          />
+          {[
+            { label: 'Benutzername', value: username, set: setUsername, type: 'text', placeholder: 'admin' },
+            { label: 'Passwort', value: password, set: setPassword, type: 'password', placeholder: '••••••••' },
+            { label: 'Passwort bestätigen', value: confirm, set: setConfirm, type: 'password', placeholder: '••••••••' },
+          ].map(({ label, value, set, type, placeholder }) => (
+            <div key={label} className="mb-4">
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">
+                {label}
+              </label>
+              <input
+                type={type}
+                value={value}
+                onChange={e => set(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                placeholder={placeholder}
+                required
+              />
+            </div>
+          ))}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold rounded-lg py-2.5 text-sm transition-colors"
+            className="w-full mt-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold rounded-lg py-2.5 text-sm transition-colors"
           >
-            {loading ? 'Wird gespeichert…' : 'Passwort speichern & einloggen'}
+            {loading ? 'Wird angelegt…' : 'Admin anlegen & starten'}
           </button>
         </form>
       </div>

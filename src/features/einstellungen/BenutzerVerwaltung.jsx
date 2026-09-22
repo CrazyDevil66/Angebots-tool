@@ -3,7 +3,7 @@ import { Trash2, RefreshCw, Mail, Shield, Key, Copy, Check } from 'lucide-react'
 import {
   apiGetUsers, apiCreateUser, apiUpdateUser, apiDeleteUser,
   apiInviteUser, apiResetPassword,
-} from '../api/auth';
+} from '../../api/auth';
 
 function Avatar({ username, role }) {
   const colors = role === 'admin'

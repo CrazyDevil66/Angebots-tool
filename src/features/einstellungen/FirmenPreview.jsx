@@ -1,4 +1,4 @@
-import { MARKENFARBEN as C } from '../lib/markenfarben';
+import { MARKENFARBEN as C } from '../../lib/markenfarben';
 
 function PreviewRow({ label, value }) {
   if (!value) return null;
