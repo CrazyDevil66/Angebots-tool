@@ -20,6 +20,7 @@ app.use('/api/config/smtp', require('./routes/smtp'));
 app.get('/api/events', eventsHandler);
 app.use('/api/data', require('./routes/data'));
 app.use('/api/angebote', require('./routes/angebote'));
+app.use('/api/backup', require('./routes/backup'));
 app.use('/invite', require('./routes/einladung'));
 
 // Static files + SPA fallback (muss als letztes stehen)

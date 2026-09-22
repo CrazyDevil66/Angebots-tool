@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Building2, CheckCircle2, ImagePlus, Trash2, FileText, CreditCard, Settings2, AlignLeft, BookOpen, Plus, Download, Upload, Users, Mail } from 'lucide-react';
+import { Building2, CheckCircle2, ImagePlus, Trash2, FileText, CreditCard, Settings2, AlignLeft, BookOpen, Plus, Download, Users, Mail } from 'lucide-react';
 import FormField, { Input, Textarea, Select } from '../components/FormField';
 import FirmenPreview from '../components/FirmenPreview';
-import { saveFirma, saveKatalog, saveKunden, saveAngebot, loadAngebote } from '../lib/storage';
+import { saveFirma, saveKatalog } from '../lib/storage';
 import { defaultData, einheiten } from '../lib/defaultData';
 import BenutzerVerwaltung from './BenutzerVerwaltung';
+import Datensicherung from '../features/einstellungen/Datensicherung';
 import { apiGetSmtp, apiSaveSmtp, apiTestSmtp, clearToken } from '../lib/auth';
 
 function Section({ icon: Icon, title, children }) {
@@ -27,7 +28,7 @@ const TABS = [
   { id: 'email',    label: 'E-Mail',        icon: Mail,     adminOnly: true },
 ];
 
-export default function Einstellungen({ token, currentUser, onLogout, firma, setFirma, kunden, setKunden, angebote, setAngebote, katalog, setKatalog }) {
+export default function Einstellungen({ token, currentUser, onLogout, firma, setFirma, setKunden, setAngebote, katalog, setKatalog }) {
   const [saved,   setSaved]   = useState(false);
   const [tab,     setTab]     = useState('firma');
   const timer     = useRef(null);
@@ -65,7 +66,6 @@ export default function Einstellungen({ token, currentUser, onLogout, firma, set
   }
 
   const fileRef   = useRef(null);
-  const importRef = useRef(null);
   const saveTimer = useRef(null);
 
   function triggerSaved() {
@@ -117,48 +117,6 @@ export default function Einstellungen({ token, currentUser, onLogout, firma, set
     setKatalog(neu);
     await saveKatalog(token, neu);
     triggerSaved();
-  }
-
-  function handleExport() {
-    const backup = {
-      exportedAt: new Date().toISOString(),
-      firma,
-      kunden,
-      angebote,
-      katalog,
-    };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = `objektrausch-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  function handleImport(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async ev => {
-      try {
-        const backup = JSON.parse(ev.target.result);
-        if (backup.firma)    { await saveFirma(token, backup.firma);       setFirma(backup.firma); }
-        if (backup.kunden)   { await saveKunden(token, backup.kunden);     setKunden(backup.kunden); }
-        if (backup.katalog)  { await saveKatalog(token, backup.katalog);   setKatalog(backup.katalog); }
-        if (backup.angebote) {
-          for (const entry of backup.angebote) {
-            await saveAngebot(token, entry.snapshot || entry);
-          }
-          setAngebote(await loadAngebote(token));
-        }
-        triggerSaved();
-      } catch {
-        alert('Ungültige Backup-Datei.');
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
   }
 
   return (
@@ -300,27 +258,17 @@ export default function Einstellungen({ token, currentUser, onLogout, firma, set
                   </div>
                 </Section>
 
-                {/* Datensicherung */}
-                <Section icon={Download} title="Datensicherung">
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={handleExport}
-                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-all"
-                    >
-                      <Download size={14} />
-                      Alle Daten exportieren
-                    </button>
-                    <button
-                      onClick={() => importRef.current?.click()}
-                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-all"
-                    >
-                      <Upload size={14} />
-                      Backup importieren
-                    </button>
-                    <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
-                    <span className="text-xs text-slate-400">Importieren überschreibt alle vorhandenen Daten.</span>
-                  </div>
-                </Section>
+                {currentUser?.role === 'admin' && (
+                  <Section icon={Download} title="Datensicherung">
+                    <Datensicherung
+                      token={token}
+                      setFirma={setFirma}
+                      setKunden={setKunden}
+                      setKatalog={setKatalog}
+                      setAngebote={setAngebote}
+                    />
+                  </Section>
+                )}
               </>
             )}
 

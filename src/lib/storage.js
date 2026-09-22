@@ -134,6 +134,16 @@ export async function setAngebotRechnung(token, id, rechnungsNr, rechnungsDatum,
   return result.index;
 }
 
+// ── Datensicherung (nur Admins) ───────────────────────────────────────────────
+
+export async function ladeBackup(token) {
+  return apiGet(token, '/backup');
+}
+
+export async function stelleBackupWiederHer(token, backup) {
+  return apiPost(token, '/backup/restore', backup);
+}
+
 // ── Pure Helper-Funktionen ────────────────────────────────────────────────────
 
 function parseDEDate(str) {

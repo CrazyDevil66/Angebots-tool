@@ -11,9 +11,13 @@ const INDEX_FILE = path.join(ANGEBOTE_DIR, 'index.json');
 
 const GUELTIGE_ID = /^[A-Za-z0-9_-]{1,100}$/;
 
+function istGueltigeId(id) {
+  return typeof id === 'string' && GUELTIGE_ID.test(id);
+}
+
 function offerFile(id) {
   // Die ID wird Teil des Dateinamens – ohne Prüfung wären Pfade wie "../users" möglich.
-  if (typeof id !== 'string' || !GUELTIGE_ID.test(id)) throw httpFehler(400, 'Ungültige Angebots-ID');
+  if (!istGueltigeId(id)) throw httpFehler(400, 'Ungültige Angebots-ID');
   return path.join(ANGEBOTE_DIR, `${id}.json`);
 }
 
@@ -163,6 +167,28 @@ function removeOffer(id) {
   return index;
 }
 
+function readAllOffers() {
+  return readIndex().map(e => readOffer(e.id)).filter(Boolean);
+}
+
+// Ersetzt den kompletten Angebotsbestand (Backup-Wiederherstellung).
+// Neue Dateien werden zuerst geschrieben, verwaiste erst danach gelöscht.
+function replaceAll(offers) {
+  ensureDir();
+  const index = offers.map(({ snapshot, ...meta }) => {
+    const neu = buildMetadata(meta.id, snapshot, meta.status, meta);
+    writeOffer(meta.id, { ...neu, snapshot: stripLogo(snapshot) });
+    return neu;
+  });
+  writeIndex(index);
+  const behalten = new Set(index.map(e => e.id));
+  for (const datei of fs.readdirSync(ANGEBOTE_DIR)) {
+    const id = path.basename(datei, '.json');
+    if (datei.endsWith('.json') && id !== 'index' && !behalten.has(id)) deleteOfferFile(id);
+  }
+  return index;
+}
+
 function migrateIfNeeded() {
   const oldFile = path.join(DATA_DIR, 'angebote.json');
   if (!fs.existsSync(oldFile)) return;
@@ -231,12 +257,15 @@ function recalcBrutto() {
 }
 
 module.exports = {
+  istGueltigeId,
   readIndex,
   readOffer,
   createOffer,
   updateOffer,
   patchOffer,
   removeOffer,
+  readAllOffers,
+  replaceAll,
   migrateIfNeeded,
   recalcBrutto,
 };
