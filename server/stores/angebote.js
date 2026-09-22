@@ -9,7 +9,11 @@ const DATA_DIR = dataDir();
 const ANGEBOTE_DIR = path.join(DATA_DIR, 'angebote');
 const INDEX_FILE = path.join(ANGEBOTE_DIR, 'index.json');
 
+const GUELTIGE_ID = /^[A-Za-z0-9_-]{1,100}$/;
+
 function offerFile(id) {
+  // Die ID wird Teil des Dateinamens – ohne Prüfung wären Pfade wie "../users" möglich.
+  if (typeof id !== 'string' || !GUELTIGE_ID.test(id)) throw httpFehler(400, 'Ungültige Angebots-ID');
   return path.join(ANGEBOTE_DIR, `${id}.json`);
 }
 
@@ -152,6 +156,7 @@ function patchOffer(id, patch) {
 }
 
 function removeOffer(id) {
+  offerFile(id); // ID prüfen, bevor der Index verändert wird
   const index = readIndex().filter(e => e.id !== id);
   writeIndex(index);
   deleteOfferFile(id);

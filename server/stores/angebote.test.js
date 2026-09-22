@@ -202,3 +202,14 @@ test('patchOffer: eigene Rechnungsnummer erneut setzen ist erlaubt', () => {
   store.patchOffer(a.id, { rechnungsNr: 'R-2026-901', status: 'bezahlt' });
   assert.equal(store.readOffer(a.id).status, 'bezahlt');
 });
+
+test('Angebots-IDs mit Pfadbestandteilen werden abgelehnt (kein Zugriff außerhalb von angebote/)', () => {
+  fs.writeFileSync(path.join(tmpDir, 'users.json'), '[{"geheim":true}]');
+  for (const id of ['../users', '..', 'a/b', 'a\\b', '']) {
+    assert.throws(() => store.readOffer(id), e => e.status === 400, `readOffer(${JSON.stringify(id)})`);
+    assert.throws(() => store.removeOffer(id), e => e.status === 400, `removeOffer(${JSON.stringify(id)})`);
+    assert.throws(() => store.updateOffer(id, sampleData, 'entwurf'), e => e.status === 400);
+    assert.throws(() => store.patchOffer(id, { status: 'x' }), e => e.status === 400);
+  }
+  assert.equal(fs.readFileSync(path.join(tmpDir, 'users.json'), 'utf8'), '[{"geheim":true}]');
+});
