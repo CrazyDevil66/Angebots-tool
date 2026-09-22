@@ -3,7 +3,12 @@ import { defaultData } from '../../lib/defaultData';
 import { loadAngebotFull } from '../../api/angebote';
 import { add14Days } from '../../utils/datum';
 import { einleitungMitAnrede } from '../../utils/anrede';
+import { mitPositionsIds } from '../../utils/positionen';
 import { initData, metaAus, kundeAusAdressbuch } from './initData';
+
+function mitIds(data) {
+  return { ...data, positionen: mitPositionsIds(data.positionen || []) };
+}
 
 function einleitungsVorlage(firma) {
   return firma.einleitungAngebot ?? defaultData.firma.einleitungAngebot;
@@ -14,7 +19,7 @@ export default function useAngebotDaten({ params, firma, angebote, token }) {
   const gespeichert = params?.angebotId ? angebote.find(a => a.id === params.angebotId) : null;
 
   const [loading, setLoading] = useState(!!params?.angebotId);
-  const [data, setData] = useState(() => initData(params, firma, angebote));
+  const [data, setData] = useState(() => mitIds(initData(params, firma, angebote)));
   const [meta, setMeta] = useState(() => metaAus(gespeichert));
   const [aktivesId, setAktivesId] = useState(params?.angebotId || null);
 
@@ -22,7 +27,7 @@ export default function useAngebotDaten({ params, firma, angebote, token }) {
     if (!params?.angebotId) return;
     loadAngebotFull(token, params.angebotId)
       .then(full => {
-        setData({ ...full.snapshot, firma: firma || defaultData.firma });
+        setData(mitIds({ ...full.snapshot, firma: firma || defaultData.firma }));
         setMeta(metaAus(full));
         setLoading(false);
       })
@@ -83,13 +88,13 @@ export default function useAngebotDaten({ params, firma, angebote, token }) {
       ...d,
       positionen: [
         ...d.positionen.filter(p => p.bezeichnung || p.einzelpreis),
-        ...neuePositionen,
+        ...mitPositionsIds(neuePositionen),
       ],
     }));
   }
 
   function zuruecksetzen() {
-    setData({ ...defaultData, firma: firma || defaultData.firma });
+    setData(mitIds({ ...defaultData, firma: firma || defaultData.firma }));
     setAktivesId(null);
     setMeta(m => ({ ...m, status: 'entwurf' }));
   }

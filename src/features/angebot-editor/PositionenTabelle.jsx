@@ -1,17 +1,58 @@
-import { Plus, Trash2, GripVertical } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Trash2, GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
 import { Input, Select } from '../../components/FormField';
 import { einheiten } from '../../lib/defaultData';
 import { vkPreis, positionGesamt, berechneSummen } from '../../../shared/berechnung.js';
 import { formatBetrag } from '../../utils/format';
+import { neuePosition, verschiebePosition, zielIndexBeimEinfuegen } from '../../utils/positionen';
+
+const EINFUEGE_LINIE_OBEN  = 'shadow-[inset_0_2px_0_0_#6366f1]';
+const EINFUEGE_LINIE_UNTEN = 'shadow-[inset_0_-2px_0_0_#6366f1]';
 
 export default function PositionenTabelle({ positionen, onChange }) {
+  // Drag & Drop: gezogene Zeile und Einfügelücke (0 = vor der ersten, n = nach der letzten Zeile)
+  const [ziehtVon, setZiehtVon] = useState(null);
+  const [luecke, setLuecke] = useState(null);
+
   function update(i, field, value) {
     const neu = positionen.map((p, idx) => idx === i ? { ...p, [field]: value } : p);
     onChange(neu);
   }
 
   function addRow() {
-    onChange([...positionen, { bezeichnung: '', beschreibung: '', menge: 1, einheit: 'Stk.', einzelpreis: 0, aufschlag: 0 }]);
+    onChange([...positionen, neuePosition()]);
+  }
+
+  function verschiebe(von, nach) {
+    onChange(verschiebePosition(positionen, von, nach));
+  }
+
+  function handleDragStart(e, i) {
+    setZiehtVon(i);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(i));
+    const zeile = e.currentTarget.closest('[data-position-zeile]');
+    if (zeile) e.dataTransfer.setDragImage(zeile, 16, 16);
+  }
+
+  function handleDragOver(e, i) {
+    if (ziehtVon === null) return;
+    e.preventDefault();
+    const { top, height } = e.currentTarget.getBoundingClientRect();
+    setLuecke(e.clientY < top + height / 2 ? i : i + 1);
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    if (ziehtVon !== null && luecke !== null) {
+      verschiebe(ziehtVon, zielIndexBeimEinfuegen(ziehtVon, luecke));
+    }
+    handleDragEnd();
+  }
+
+  function handleDragEnd() {
+    setZiehtVon(null);
+    setLuecke(null);
   }
 
   function remove(i) {
@@ -41,14 +82,48 @@ export default function PositionenTabelle({ positionen, onChange }) {
         {positionen.map((pos, i) => {
           const vk = vkPreis(pos);
           const gesamt = positionGesamt(pos);
+          const linie = luecke === i ? EINFUEGE_LINIE_OBEN
+            : (luecke === positionen.length && i === positionen.length - 1) ? EINFUEGE_LINIE_UNTEN : '';
           return (
             <div
-              key={i}
-              className="grid grid-cols-[28px_1fr_68px_76px_88px_60px_88px_96px_36px] gap-2 items-start
-                bg-slate-50 rounded-xl p-2 hover:bg-indigo-50/40 transition-colors group"
+              key={pos.id ?? i}
+              data-position-zeile
+              onDragOver={e => handleDragOver(e, i)}
+              onDrop={handleDrop}
+              className={`grid grid-cols-[28px_1fr_68px_76px_88px_60px_88px_96px_36px] gap-2 items-start
+                bg-slate-50 rounded-xl p-2 hover:bg-indigo-50/40 transition-colors group
+                ${ziehtVon === i ? 'opacity-40' : ''} ${linie}`}
             >
-              <div className="flex items-center justify-center h-9 text-slate-300 group-hover:text-slate-400">
-                <GripVertical size={16} />
+              <div className="flex flex-col items-center text-slate-300 group-hover:text-slate-400">
+                <button
+                  type="button"
+                  onClick={() => verschiebe(i, i - 1)}
+                  disabled={i === 0}
+                  title="Nach oben"
+                  aria-label={`Position ${i + 1} nach oben`}
+                  className="rounded hover:text-indigo-500 disabled:opacity-20 disabled:cursor-not-allowed"
+                >
+                  <ChevronUp size={14} />
+                </button>
+                <div
+                  draggable
+                  onDragStart={e => handleDragStart(e, i)}
+                  onDragEnd={handleDragEnd}
+                  title="Ziehen zum Verschieben"
+                  className="cursor-grab active:cursor-grabbing py-0.5 hover:text-indigo-500"
+                >
+                  <GripVertical size={16} />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => verschiebe(i, i + 1)}
+                  disabled={i === positionen.length - 1}
+                  title="Nach unten"
+                  aria-label={`Position ${i + 1} nach unten`}
+                  className="rounded hover:text-indigo-500 disabled:opacity-20 disabled:cursor-not-allowed"
+                >
+                  <ChevronDown size={14} />
+                </button>
               </div>
 
               <div className="flex flex-col gap-1">
