@@ -1,14 +1,11 @@
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { Input, Select } from './FormField';
 import { einheiten } from '../lib/defaultData';
+import { vkPreis, positionGesamt, berechneSummen } from '../../shared/berechnung.js';
 
 function fmt(val) {
   const n = Number(val) || 0;
   return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function vkPreis(pos) {
-  return Number(pos.einzelpreis) * (1 + Number(pos.aufschlag || 0) / 100);
 }
 
 export default function PositionenTabelle({ positionen, onChange }) {
@@ -26,7 +23,7 @@ export default function PositionenTabelle({ positionen, onChange }) {
     onChange(positionen.filter((_, idx) => idx !== i));
   }
 
-  const netto = positionen.reduce((s, p) => s + Number(p.menge) * vkPreis(p), 0);
+  const { netto } = berechneSummen(positionen);
 
   return (
     <div>
@@ -47,7 +44,7 @@ export default function PositionenTabelle({ positionen, onChange }) {
       <div className="flex flex-col gap-1 mt-2">
         {positionen.map((pos, i) => {
           const vk = vkPreis(pos);
-          const gesamt = Number(pos.menge) * vk;
+          const gesamt = positionGesamt(pos);
           return (
             <div
               key={i}

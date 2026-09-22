@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { berechneSummen } = require('../shared/berechnung.js');
 
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '..', 'data');
 const ANGEBOTE_DIR = path.join(DATA_DIR, 'angebote');
@@ -61,11 +62,13 @@ function stripLogo(snapshot) {
   return { ...snapshot, firma: rest };
 }
 
+function summen(snapshot) {
+  const { netto, brutto } = berechneSummen(snapshot?.positionen, snapshot?.mwstSatz ?? 19);
+  return { netto, brutto };
+}
+
 function buildMetadata(id, data, status, extra = {}) {
-  const netto = (data.positionen || []).reduce(
-    (s, p) => s + Number(p.menge) * Number(p.einzelpreis), 0
-  );
-  const brutto = netto * (1 + Number(data.mwstSatz) / 100);
+  const { netto, brutto } = summen(data);
   return {
     id,
     savedAt: extra.savedAt || new Date().toISOString(),
@@ -132,10 +135,7 @@ function patchOffer(id, patch) {
   if (!existing) throw new Error(`Angebot ${id} nicht gefunden`);
   const { snapshot, ...meta } = existing;
   const { id: _id, savedAt: _savedAt, snapshot: _snap, ...safePatch } = patch;
-  const netto = (snapshot?.positionen || []).reduce(
-    (s, p) => s + Number(p.menge) * Number(p.einzelpreis), 0
-  );
-  const brutto = netto * (1 + Number(snapshot?.mwstSatz ?? 19) / 100);
+  const { netto, brutto } = summen(snapshot);
   const newMeta = { ...meta, ...safePatch, netto, brutto, updatedAt: new Date().toISOString() };
   writeOffer(id, { ...newMeta, snapshot });
   const index = readIndex().map(e => e.id === id ? newMeta : e);
@@ -207,10 +207,7 @@ function recalcBrutto() {
   const updated = index.map(entry => {
     const offer = readOffer(entry.id);
     if (!offer?.snapshot) return entry;
-    const netto = (offer.snapshot.positionen || []).reduce(
-      (s, p) => s + Number(p.menge) * Number(p.einzelpreis), 0
-    );
-    const brutto = netto * (1 + Number(offer.snapshot.mwstSatz ?? 19) / 100);
+    const { netto, brutto } = summen(offer.snapshot);
     if (Math.abs(entry.netto - netto) < 0.001 && Math.abs(entry.brutto - brutto) < 0.001) return entry;
     changed = true;
     const newMeta = { ...entry, netto, brutto };

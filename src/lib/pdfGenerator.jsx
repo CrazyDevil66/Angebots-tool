@@ -1,6 +1,7 @@
 import { Document, Page, Text, View, StyleSheet, pdf, Font, Image } from '@react-pdf/renderer';
 import orbitron400 from '../assets/fonts/orbitron-400.woff';
 import orbitron700 from '../assets/fonts/orbitron-700.woff';
+import { vkPreis, positionGesamt, berechneSummen } from '../../shared/berechnung.js';
 
 Font.register({
   family: 'Orbitron',
@@ -287,14 +288,8 @@ function fmt(n) {
   return Number(n || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' €';
 }
 
-function vkPreis(p) {
-  return Number(p.einzelpreis) * (1 + Number(p.aufschlag || 0) / 100);
-}
-
 function DokumentPDF({ data, typ = 'angebot' }) {
-  const netto  = data.positionen.reduce((s, p) => s + Number(p.menge) * vkPreis(p), 0);
-  const mwst   = netto * (Number(data.mwstSatz) / 100);
-  const brutto = netto + mwst;
+  const { netto, mwst, brutto } = berechneSummen(data.positionen, data.mwstSatz);
   const heute  = new Date().toLocaleDateString('de-DE');
   const f      = data.firma;
 
@@ -392,7 +387,7 @@ function DokumentPDF({ data, typ = 'angebot' }) {
               <Text style={[s.colUnit,  s.tdText]}>{p.einheit || 'Stk.'}</Text>
               <Text style={[s.colPrice, s.tdText]}>{fmt(vkPreis(p))}</Text>
               <Text style={[s.colTotal, s.tdText, { fontWeight: 700 }]}>
-                {fmt(Number(p.menge) * vkPreis(p))}
+                {fmt(positionGesamt(p))}
               </Text>
             </View>
           ))}
@@ -451,9 +446,7 @@ function DokumentPDF({ data, typ = 'angebot' }) {
 
 function MahnungPDF({ data, mahnung }) {
   const f      = data.firma;
-  const netto  = data.positionen.reduce((s, p) => s + Number(p.menge) * vkPreis(p), 0);
-  const mwst   = netto * (Number(data.mwstSatz) / 100);
-  const brutto = netto + mwst;
+  const { brutto } = berechneSummen(data.positionen, data.mwstSatz);
   const gebuehr = Number(mahnung.mahngebuehr || 0);
   const vorherigeGebuehren = (mahnung.vorherigeGebuehren || []).filter(g => g.betrag > 0);
   const vorherigeGebuehrenSum = vorherigeGebuehren.reduce((s, g) => s + Number(g.betrag || 0), 0);

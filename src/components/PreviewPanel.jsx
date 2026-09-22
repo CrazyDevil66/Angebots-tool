@@ -1,11 +1,8 @@
 import { FileText } from 'lucide-react';
+import { vkPreis, positionGesamt, berechneSummen } from '../../shared/berechnung.js';
 
 function fmt(num) {
   return Number(num || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function vkPreis(p) {
-  return Number(p.einzelpreis) * (1 + Number(p.aufschlag || 0) / 100);
 }
 
 const C = {
@@ -33,9 +30,7 @@ function splitIntoPages(positionen) {
 }
 
 export default function PreviewPanel({ data }) {
-  const netto  = data.positionen.reduce((s, p) => s + Number(p.menge) * vkPreis(p), 0);
-  const mwst   = netto * (Number(data.mwstSatz) / 100);
-  const brutto = netto + mwst;
+  const { netto, mwst, brutto } = berechneSummen(data.positionen, data.mwstSatz);
   const f      = data.firma;
 
   const absender = [f.name, f.strasse, [f.plz, f.ort].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
@@ -205,7 +200,7 @@ export default function PreviewPanel({ data }) {
                       <span style={{ width: '10%', textAlign: 'center', fontSize: 11, color: C.textDark }}>{p.einheit || 'Stk.'}</span>
                       <span style={{ width: '16%', textAlign: 'right',  fontSize: 11, color: C.textDark }}>{fmt(vk)} €</span>
                       <span style={{ width: '16%', textAlign: 'right', paddingRight: 10, fontSize: 11, fontWeight: 700, color: C.textDark }}>
-                        {fmt(Number(p.menge) * vk)} €
+                        {fmt(positionGesamt(p))} €
                       </span>
                     </div>
                   );

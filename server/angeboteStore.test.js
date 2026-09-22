@@ -144,3 +144,43 @@ test('migrateIfNeeded: zweiter Aufruf ist idempotent', () => {
   store.migrateIfNeeded();
   assert.deepEqual(store.readIndex(), indexBefore);
 });
+
+const mitAufschlag = {
+  ...sampleData,
+  positionen: [
+    { menge: 2, einzelpreis: 100, aufschlag: 25, bezeichnung: 'Pos A', einheit: 'Stk.' },
+    { menge: 1, einzelpreis: 50, aufschlag: 0, bezeichnung: 'Pos B', einheit: 'Stk.' },
+  ],
+};
+
+test('createOffer: Netto/Brutto berücksichtigen den Aufschlag', () => {
+  const { entry } = store.createOffer(mitAufschlag);
+  assert.equal(entry.netto, 300);
+  assert.ok(Math.abs(entry.brutto - 357) < 0.01);
+});
+
+test('updateOffer: Netto/Brutto berücksichtigen den Aufschlag', () => {
+  const { entry } = store.createOffer(sampleData);
+  const index = store.updateOffer(entry.id, mitAufschlag, 'entwurf');
+  assert.equal(index.find(e => e.id === entry.id).netto, 300);
+});
+
+test('patchOffer: Netto/Brutto berücksichtigen den Aufschlag', () => {
+  const { entry } = store.createOffer(mitAufschlag);
+  const index = store.patchOffer(entry.id, { status: 'gesendet' });
+  assert.equal(index.find(e => e.id === entry.id).netto, 300);
+});
+
+test('recalcBrutto: korrigiert gespeicherte Beträge ohne Aufschlag', () => {
+  const { entry } = store.createOffer(mitAufschlag);
+  const indexFile = path.join(tmpDir, 'angebote', 'index.json');
+  const falsch = store.readIndex().map(e => e.id === entry.id ? { ...e, netto: 250, brutto: 297.5 } : e);
+  fs.writeFileSync(indexFile, JSON.stringify(falsch));
+
+  store.recalcBrutto();
+
+  const korrigiert = store.readIndex().find(e => e.id === entry.id);
+  assert.equal(korrigiert.netto, 300);
+  assert.ok(Math.abs(korrigiert.brutto - 357) < 0.01);
+  assert.equal(store.readOffer(entry.id).netto, 300);
+});
