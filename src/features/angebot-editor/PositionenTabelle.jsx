@@ -9,6 +9,15 @@ import { neuePosition, verschiebePosition, zielIndexBeimEinfuegen } from '../../
 const EINFUEGE_LINIE_OBEN  = 'shadow-[inset_0_2px_0_0_#6366f1]';
 const EINFUEGE_LINIE_UNTEN = 'shadow-[inset_0_-2px_0_0_#6366f1]';
 
+function Feld({ label, className, children }) {
+  return (
+    <label className={`flex flex-col gap-0.5 ${className}`}>
+      <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wide">{label}</span>
+      {children}
+    </label>
+  );
+}
+
 export default function PositionenTabelle({ positionen, onChange }) {
   // Drag & Drop: gezogene Zeile und Einfügelücke (0 = vor der ersten, n = nach der letzten Zeile)
   const [ziehtVon, setZiehtVon] = useState(null);
@@ -64,21 +73,8 @@ export default function PositionenTabelle({ positionen, onChange }) {
 
   return (
     <div>
-      {/* Tabellen-Header */}
-      <div className="grid grid-cols-[28px_1fr_68px_76px_88px_60px_88px_96px_36px] gap-2 px-2 pb-2 border-b border-slate-100">
-        <span />
-        <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">Beschreibung</span>
-        <span className="text-xs font-medium text-slate-400 uppercase tracking-wide text-center">Menge</span>
-        <span className="text-xs font-medium text-slate-400 uppercase tracking-wide text-center">Einheit</span>
-        <span className="text-xs font-medium text-slate-400 uppercase tracking-wide text-right">EK-Preis</span>
-        <span className="text-xs font-medium text-slate-400 uppercase tracking-wide text-center">Aufschl.</span>
-        <span className="text-xs font-medium text-slate-400 uppercase tracking-wide text-right">VK-Preis</span>
-        <span className="text-xs font-medium text-slate-400 uppercase tracking-wide text-right">Gesamt</span>
-        <span />
-      </div>
-
-      {/* Positionen */}
-      <div className="flex flex-col gap-1 mt-2">
+      {/* Positionen: Beschreibung über die volle Breite, Zahlenfelder darunter */}
+      <div className="flex flex-col gap-1.5">
         {positionen.map((pos, i) => {
           const vk = vkPreis(pos);
           const gesamt = positionGesamt(pos);
@@ -90,7 +86,7 @@ export default function PositionenTabelle({ positionen, onChange }) {
               data-position-zeile
               onDragOver={e => handleDragOver(e, i)}
               onDrop={handleDrop}
-              className={`grid grid-cols-[28px_1fr_68px_76px_88px_60px_88px_96px_36px] gap-2 items-start
+              className={`grid grid-cols-[28px_minmax(0,1fr)_auto_36px] gap-2 items-start
                 bg-slate-50 rounded-xl p-2 hover:bg-indigo-50/40 transition-colors group
                 ${ziehtVon === i ? 'opacity-40' : ''} ${linie}`}
             >
@@ -126,9 +122,10 @@ export default function PositionenTabelle({ positionen, onChange }) {
                 </button>
               </div>
 
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1.5 min-w-0">
                 <Input
                   placeholder="Bezeichnung"
+                  aria-label={`Bezeichnung Position ${i + 1}`}
                   value={pos.bezeichnung}
                   onChange={e => update(i, 'bezeichnung', e.target.value)}
                 />
@@ -137,63 +134,63 @@ export default function PositionenTabelle({ positionen, onChange }) {
                     bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all
                     placeholder:text-slate-300"
                   placeholder="Zusatzbeschreibung (optional)"
+                  aria-label={`Zusatzbeschreibung Position ${i + 1}`}
                   value={pos.beschreibung}
                   onChange={e => update(i, 'beschreibung', e.target.value)}
                 />
+                <div className="flex flex-wrap items-end gap-2 mt-0.5">
+                  <Feld label="Menge" className="w-20">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={pos.menge}
+                      onChange={e => update(i, 'menge', e.target.value)}
+                      className="text-center"
+                    />
+                  </Feld>
+                  <Feld label="Einheit" className="w-24">
+                    <Select value={pos.einheit} onChange={e => update(i, 'einheit', e.target.value)}>
+                      {einheiten.map(e => <option key={e} value={e}>{e}</option>)}
+                    </Select>
+                  </Feld>
+                  <Feld label="EK-Preis (€)" className="w-24">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={pos.einzelpreis}
+                      onChange={e => update(i, 'einzelpreis', e.target.value)}
+                      className="text-right"
+                      placeholder="0,00"
+                    />
+                  </Feld>
+                  <Feld label="Aufschlag" className="w-[4.5rem]">
+                    <div className="relative flex items-center">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        value={pos.aufschlag ?? 0}
+                        onChange={e => update(i, 'aufschlag', e.target.value)}
+                        className="w-full px-2 pr-5 py-2 rounded-lg border border-slate-200 text-sm text-right bg-white
+                          focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
+                        placeholder="0"
+                      />
+                      <span className="absolute right-1.5 text-xs text-slate-400 pointer-events-none">%</span>
+                    </div>
+                  </Feld>
+                </div>
               </div>
 
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={pos.menge}
-                onChange={e => update(i, 'menge', e.target.value)}
-                className="text-center"
-              />
-
-              <Select
-                value={pos.einheit}
-                onChange={e => update(i, 'einheit', e.target.value)}
-              >
-                {einheiten.map(e => <option key={e} value={e}>{e}</option>)}
-              </Select>
-
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={pos.einzelpreis}
-                onChange={e => update(i, 'einzelpreis', e.target.value)}
-                className="text-right"
-                placeholder="0,00"
-              />
-
-              {/* Aufschlag % */}
-              <div className="relative flex items-center">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={pos.aufschlag ?? 0}
-                  onChange={e => update(i, 'aufschlag', e.target.value)}
-                  className="w-full px-2 pr-5 py-2 rounded-lg border border-slate-200 text-sm text-right bg-white
-                    focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
-                  placeholder="0"
-                />
-                <span className="absolute right-1.5 text-xs text-slate-400 pointer-events-none">%</span>
-              </div>
-
-              {/* VK-Preis (berechnet) */}
-              <div className="flex items-center justify-end h-9">
-                <span className={`text-sm font-medium ${Number(pos.aufschlag) > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
-                  {formatBetrag(vk)} €
-                </span>
-              </div>
-
-              {/* Gesamt */}
-              <div className="flex items-center justify-end h-9">
-                <span className="text-sm font-semibold text-slate-700">
-                  {formatBetrag(gesamt)} €
+              {/* Gesamt, darunter der Verkaufspreis je Einheit (berechnet) */}
+              <div className="flex flex-col items-end pt-2 pl-2 whitespace-nowrap">
+                <span className="text-sm font-semibold text-slate-700">{formatBetrag(gesamt)} €</span>
+                <span
+                  title="Verkaufspreis je Einheit (EK + Aufschlag)"
+                  className={`text-xs mt-0.5 ${Number(pos.aufschlag) > 0 ? 'text-emerald-600' : 'text-slate-400'}`}
+                >
+                  à {formatBetrag(vk)} €
                 </span>
               </div>
 
@@ -201,6 +198,8 @@ export default function PositionenTabelle({ positionen, onChange }) {
                 <button
                   onClick={() => remove(i)}
                   disabled={positionen.length === 1}
+                  title="Position löschen"
+                  aria-label={`Position ${i + 1} löschen`}
                   className="p-1.5 rounded-lg text-slate-300 hover:text-red-400 hover:bg-red-50
                     disabled:opacity-20 disabled:cursor-not-allowed transition-all"
                 >

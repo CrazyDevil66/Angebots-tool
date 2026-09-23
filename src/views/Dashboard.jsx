@@ -5,13 +5,8 @@ import {
 } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import { formatBetrag } from '../utils/format';
-import { parseDEDate } from '../utils/datum';
-
-function daysSince(deStr) {
-  const date = parseDEDate(deStr);
-  if (!date) return null;
-  return Math.floor((Date.now() - date.getTime()) / 86400000);
-}
+import { tageSeit } from '../utils/datum';
+import { istAngenommen } from '../utils/angebote';
 
 // ── KPI-Kachel ────────────────────────────────────────────────────────────────
 
@@ -94,14 +89,14 @@ function AktionZeile({ icon: Icon, prio, titel, info, onClick }) {
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
-export default function Dashboard({ navigate, angebote = [], kunden = [] }) {
+export default function Dashboard({ navigate, angebote = [] }) {
 
   // ── KPI-Werte ──
   const stats = useMemo(() => {
     const bezahlt  = angebote.filter(a => a.status === 'bezahlt');
     const gemahnt  = angebote.filter(a => a.status === 'gemahnt');
     const offeneR  = angebote.filter(a => a.rechnungsNr && a.status !== 'bezahlt');
-    const angenommen = angebote.filter(a => a.status === 'angenommen');
+    const angenommen = angebote.filter(istAngenommen);
     const abgelehnt  = angebote.filter(a => a.status === 'abgelehnt');
     const entschieden = angenommen.length + abgelehnt.length;
 
@@ -112,9 +107,10 @@ export default function Dashboard({ navigate, angebote = [], kunden = [] }) {
       offenAnz:   offeneR.length,
       mahnAnz:    gemahnt.length,
       quote:      entschieden > 0 ? Math.round((angenommen.length / entschieden) * 100) : 0,
-      kundenzahl: kunden.length,
+      angenommenAnz: angenommen.length,
+      entschieden,
     };
-  }, [angebote, kunden]);
+  }, [angebote]);
 
   // ── Monatsübersicht (letzte 6 Monate) ──
   const monate = useMemo(() => {
@@ -148,7 +144,7 @@ export default function Dashboard({ navigate, angebote = [], kunden = [] }) {
     angebote
       .filter(a => a.rechnungsNr && a.status === 'angenommen' && a.rechnungsDatum)
       .forEach(a => {
-        const tage = daysSince(a.rechnungsDatum);
+        const tage = tageSeit(a.rechnungsDatum);
         if (tage !== null && tage > 14) {
           liste.push({
             id:    a.id,
@@ -220,7 +216,7 @@ export default function Dashboard({ navigate, angebote = [], kunden = [] }) {
           <KpiCard
             label="Erfolgsquote"
             value={`${stats.quote} %`}
-            sub={`${stats.kundenzahl} Kunden im Adressbuch`}
+            sub={`${stats.angenommenAnz} von ${stats.entschieden} entschiedenen Angeboten`}
             icon={TrendingUp}
             accent="indigo"
           />

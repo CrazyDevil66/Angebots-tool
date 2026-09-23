@@ -6,7 +6,7 @@ import DateInput from '../../../components/DateInput';
 export default function AngebotInfos({ data, set, setDatum }) {
   return (
     <Collapse title="Angebots-Informationen" icon={Settings}>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 min-[1400px]:grid-cols-4 gap-4">
         <FormField label="Angebotsnummer">
           <Input value={data.angebotNr} onChange={e => set('angebotNr', e.target.value)} placeholder="A-2024-001" />
         </FormField>

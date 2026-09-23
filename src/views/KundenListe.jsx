@@ -6,6 +6,7 @@ import StatusBadge from '../components/StatusBadge';
 import FormField, { Input } from '../components/FormField';
 import { saveKunde, deleteKunde } from '../api/stammdaten';
 import { formatBetrag } from '../utils/format';
+import { istAngenommen } from '../utils/angebote';
 import { neueId } from '../utils/id';
 
 const leerKunde = { id: null, anrede: '', firma: '', name: '', strasse: '', plz: '', ort: '', email: '', telefon: '' };
@@ -79,7 +80,7 @@ function KundeForm({ initial, onSave, onCancel }) {
 
 function KundeDrawer({ kunde, angebote, onEdit, onDelete, onClose, onNeuesAngebot }) {
   const stats = useMemo(() => {
-    const angenommen = angebote.filter(a => a.status === 'angenommen');
+    const angenommen = angebote.filter(istAngenommen);
     const abgelehnt  = angebote.filter(a => a.status === 'abgelehnt');
     const umsatz     = angenommen.reduce((s, a) => s + a.brutto, 0);
     const entschieden = angenommen.length + abgelehnt.length;
@@ -124,7 +125,7 @@ function KundeDrawer({ kunde, angebote, onEdit, onDelete, onClose, onNeuesAngebo
             <div className="text-xs text-slate-400 mt-0.5">Angebote</div>
           </div>
           <div className="bg-emerald-50 rounded-xl p-3 text-center">
-            <div className="text-lg font-bold text-emerald-700">{formatBetrag(stats.umsatz)} €</div>
+            <div className="text-lg font-bold text-emerald-700 whitespace-nowrap">{formatBetrag(stats.umsatz)} €</div>
             <div className="text-xs text-slate-400 mt-0.5">Umsatz</div>
           </div>
           <div className="bg-indigo-50 rounded-xl p-3 text-center">
@@ -193,7 +194,7 @@ export default function KundenListe({ navigate, kunden = [], setKunden, angebote
 
   function kundeStats(k) {
     const ka = kundeAngebote(k);
-    const umsatz = ka.filter(a => a.status === 'angenommen').reduce((s, a) => s + a.brutto, 0);
+    const umsatz = ka.filter(istAngenommen).reduce((s, a) => s + a.brutto, 0);
     return { anzahl: ka.length, umsatz };
   }
 
@@ -288,7 +289,7 @@ export default function KundenListe({ navigate, kunden = [], setKunden, angebote
                         }
                       </td>
                       <td className="px-4 py-4 text-sm text-slate-600">{stats.anzahl}</td>
-                      <td className="px-4 py-4 text-sm font-semibold text-slate-800 text-right">{stats.umsatz > 0 ? `${formatBetrag(stats.umsatz)} €` : '—'}</td>
+                      <td className="px-4 py-4 text-sm font-semibold text-slate-800 text-right whitespace-nowrap">{stats.umsatz > 0 ? `${formatBetrag(stats.umsatz)} €` : '—'}</td>
                       <td className="px-4 py-4">
                         <ChevronRight size={16} className={`transition-colors ${isActive ? 'text-indigo-400' : 'text-slate-200 group-hover:text-slate-400'}`} />
                       </td>

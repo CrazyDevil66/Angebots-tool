@@ -1,6 +1,17 @@
 // Datumswerte werden im Projekt als deutsche Strings "TT.MM.JJJJ" gespeichert.
 
-export { parseDEDate } from '../../shared/datum.js';
+import { parseDEDate } from '../../shared/datum.js';
+
+export { parseDEDate };
+
+// Ganze Tage seit einem Datum "TT.MM.JJJJ" (0 = heute), null bei ungültigem Datum.
+export function tageSeit(deStr, jetzt = new Date()) {
+  const datum = parseDEDate(deStr);
+  if (!datum) return null;
+  const heute = new Date(jetzt);
+  heute.setHours(0, 0, 0, 0);
+  return Math.round((heute - datum) / 86400000);
+}
 
 export function heuteDE() {
   return new Date().toLocaleDateString('de-DE');

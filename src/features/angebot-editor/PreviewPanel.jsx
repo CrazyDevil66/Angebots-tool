@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { FileText } from 'lucide-react';
 import { vkPreis, positionGesamt, berechneSummen } from '../../../shared/berechnung.js';
 import { formatBetrag } from '../../utils/format';
@@ -6,6 +7,24 @@ import { MARKENFARBEN as C } from '../../lib/markenfarben';
 
 const ROWS_FIRST_PAGE = 8;
 const ROWS_PER_PAGE   = 15;
+
+// Das Blatt wird in dieser Breite gezeichnet und bei schmalerer Spalte verkleinert,
+// statt rechts abgeschnitten zu werden.
+const SEITENBREITE = 540;
+
+function useSkalierung(ref) {
+  const [skala, setSkala] = useState(1);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const beobachter = new ResizeObserver(([eintrag]) => {
+      setSkala(Math.min(1, eintrag.contentRect.width / SEITENBREITE));
+    });
+    beobachter.observe(element);
+    return () => beobachter.disconnect();
+  }, [ref]);
+  return skala;
+}
 
 function splitIntoPages(positionen) {
   if (positionen.length <= ROWS_FIRST_PAGE) return [positionen];
@@ -19,6 +38,8 @@ function splitIntoPages(positionen) {
 }
 
 export default function PreviewPanel({ data }) {
+  const huelleRef = useRef(null);
+  const skala = useSkalierung(huelleRef);
   const { netto, mwst, brutto } = berechneSummen(data.positionen, data.mwstSatz);
   const f      = data.firma;
 
@@ -87,7 +108,8 @@ export default function PreviewPanel({ data }) {
       </div>
 
       {/* Seiten — scrollbar */}
-      <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 260px)' }}>
+      <div ref={huelleRef} className="overflow-y-auto overflow-x-hidden" style={{ maxHeight: 'calc(100vh - 260px)' }}>
+        <div style={{ width: SEITENBREITE, zoom: skala }}>
         {pages.map((pagePositionen, pageIdx) => {
           const isFirst  = pageIdx === 0;
           const isLast   = pageIdx === totalPages - 1;
@@ -227,6 +249,7 @@ export default function PreviewPanel({ data }) {
             </div>
           );
         })}
+        </div>
       </div>
 
       {/* Summen-Übersicht */}

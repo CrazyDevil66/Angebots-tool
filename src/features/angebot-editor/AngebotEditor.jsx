@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import PreviewPanel from './PreviewPanel';
 import RechnungModal from './RechnungModal';
 import MahnungModal from './MahnungModal';
@@ -13,10 +13,25 @@ import Hinweise from './abschnitte/Hinweise';
 import useAngebotDaten from './useAngebotDaten';
 import useAngebotAktionen from './useAngebotAktionen';
 
-export default function AngebotEditor({ navigate, params = {}, firma, kunden = [], angebote = [], setAngebote, katalog = [], token }) {
+export default function AngebotEditor({
+  navigate, params = {}, firma, kunden = [], angebote = [], setAngebote, katalog = [], token, registriereWaechter,
+}) {
   const formular = useAngebotDaten({ params, firma, angebote, token });
   const { data, meta, set } = formular;
   const aktionen = useAngebotAktionen({ token, setAngebote, ...formular });
+
+  // Vor dem Verlassen mit ungespeicherten Änderungen nachfragen – in der App und beim Schließen des Tabs
+  const ungespeichertRef = useRef(false);
+  useEffect(() => { ungespeichertRef.current = formular.ungespeichert; });
+  useEffect(() => registriereWaechter?.(() =>
+    !ungespeichertRef.current || confirm('Es gibt ungespeicherte Änderungen. Trotzdem verlassen?'),
+  ), [registriereWaechter]);
+  useEffect(() => {
+    if (!formular.ungespeichert) return;
+    const warnen = e => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', warnen);
+    return () => window.removeEventListener('beforeunload', warnen);
+  }, [formular.ungespeichert]);
 
   const [rechnungModalOffen, setRechnungModalOffen] = useState(false);
   const [mahnModalOffen, setMahnModalOffen] = useState(false);
@@ -61,6 +76,7 @@ export default function AngebotEditor({ navigate, params = {}, firma, kunden = [
         kundeEmail={data.kunde.email}
         pdfLoading={aktionen.pdfLoading}
         savedHint={aktionen.savedHint}
+        ungespeichert={formular.ungespeichert}
         onZurueck={() => navigate('angebote')}
         onStatusChange={aktionen.statusAendern}
         onReset={handleReset}
@@ -74,7 +90,7 @@ export default function AngebotEditor({ navigate, params = {}, firma, kunden = [
       />
 
       <div className="max-w-7xl mx-auto px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(460px,48%)] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(360px,42%)] gap-6">
           <div className="flex flex-col gap-5">
             <AngebotInfos data={data} set={set} setDatum={formular.setDatum} />
             <FirmendatenInfo firma={data.firma} onEinstellungen={() => navigate('einstellungen')} />

@@ -8,7 +8,9 @@ import { rechnungsDokument } from '../../utils/angebote';
 import { mailEntwurfLink } from './mailEntwurf';
 
 // Server-Aktionen und PDF-Erzeugung des Editors.
-export default function useAngebotAktionen({ token, data, set, meta, setMeta, aktivesId, setAktivesId, setAngebote }) {
+export default function useAngebotAktionen({
+  token, data, set, meta, setMeta, aktivesId, setAktivesId, setAngebote, alsGespeichertMarkieren,
+}) {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [savedHint, setSavedHint] = useState(false);
   const [saveError, setSaveError] = useState(null);
@@ -23,10 +25,15 @@ export default function useAngebotAktionen({ token, data, set, meta, setMeta, ak
     const { eintrag, updated } = await saveAngebot(token, data);
     setAktivesId(eintrag.id);
     setAngebote(updated);
-    if (eintrag.angebotNr === data.angebotNr) return { id: eintrag.id, dokument: data };
+    if (eintrag.angebotNr === data.angebotNr) {
+      alsGespeichertMarkieren(data);
+      return { id: eintrag.id, dokument: data };
+    }
+    const dokument = { ...data, angebotNr: eintrag.angebotNr };
     set('angebotNr', eintrag.angebotNr);
+    alsGespeichertMarkieren(dokument);
     setHinweis(`Die Angebotsnummer ${data.angebotNr || '(leer)'} war bereits vergeben – das Angebot wurde als ${eintrag.angebotNr} gespeichert.`);
-    return { id: eintrag.id, dokument: { ...data, angebotNr: eintrag.angebotNr } };
+    return { id: eintrag.id, dokument };
   }
 
   async function pdfErzeugen(...args) {
@@ -44,6 +51,7 @@ export default function useAngebotAktionen({ token, data, set, meta, setMeta, ak
     try {
       if (aktivesId) {
         setAngebote(await updateAngebot(token, aktivesId, data, meta.status));
+        alsGespeichertMarkieren(data);
       } else {
         await sicherGespeichert();
       }

@@ -147,7 +147,22 @@ export default function App() {
     setAuth({ loading: false, setupRequired: false, token: null, user: null });
   }
 
-  const navigate = useCallback((view, params = {}) => setNav({ view, params }), []);
+  // Der Editor meldet hier eine Prüfung an, die vor dem Verlassen bei ungespeicherten Änderungen nachfragt.
+  const waechterRef = useRef(null);
+  const registriereWaechter = useCallback(pruefung => {
+    waechterRef.current = pruefung;
+    return () => { if (waechterRef.current === pruefung) waechterRef.current = null; };
+  }, []);
+
+  const navigate = useCallback((view, params = {}) => {
+    if (waechterRef.current && !waechterRef.current()) return;
+    setNav({ view, params });
+  }, []);
+
+  function abmelden() {
+    if (waechterRef.current && !waechterRef.current()) return;
+    handleLogout();
+  }
 
   const counts = useMemo(() => ({
     angebote: angebote.length,
@@ -186,7 +201,7 @@ export default function App() {
     switch (nav.view) {
       case 'dashboard':      return <Dashboard {...sharedProps} />;
       case 'angebote':       return <AngeboteListe {...sharedProps} />;
-      case 'angebot-editor': return <AngebotEditor {...sharedProps} params={nav.params} />;
+      case 'angebot-editor': return <AngebotEditor {...sharedProps} params={nav.params} registriereWaechter={registriereWaechter} />;
       case 'rechnungen':     return <RechnungenListe {...sharedProps} />;
       case 'kunden':         return <KundenListe {...sharedProps} />;
       case 'einstellungen':  return <Einstellungen {...sharedProps} onLogout={handleLogout} />;
@@ -196,7 +211,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
-      <Sidebar currentView={nav.view} onNavigate={navigate} counts={counts} onLogout={handleLogout} />
+      <Sidebar currentView={nav.view} onNavigate={navigate} counts={counts} onLogout={abmelden} />
       <main className="flex-1 overflow-y-auto">{renderView()}</main>
     </div>
   );

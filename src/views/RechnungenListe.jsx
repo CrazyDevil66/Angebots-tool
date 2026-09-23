@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Search, Download, Pencil, ChevronDown } from 'lucide-react';
 import { loadAngebotFull } from '../api/angebote';
 import { formatBetrag } from '../utils/format';
+import { tageSeit } from '../utils/datum';
 import { generatePDF } from '../pdf/ladePDF';
 import { rechnungsDokument } from '../utils/angebote';
 import { getStatus } from '../lib/statusConfig';
@@ -14,6 +15,21 @@ const TABS = [
   { id: 'gemahnt',    label: 'Gemahnt' },
   { id: 'bezahlt',    label: 'Bezahlt' },
 ];
+
+// Wie lange eine Rechnung offen ist; Schwellen wie beim Handlungsbedarf im Dashboard.
+function OffenSeit({ rechnung }) {
+  if (rechnung.status === 'bezahlt') {
+    const am = rechnung.bezahltAm
+      ? new Date(rechnung.bezahltAm).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
+      : null;
+    return <span className="text-slate-400">{am ? `bezahlt am ${am}` : 'bezahlt'}</span>;
+  }
+  const tage = tageSeit(rechnung.rechnungsDatum);
+  if (tage === null) return <span className="text-slate-300">—</span>;
+  const farbe = tage > 30 ? 'text-red-600 font-semibold' : tage > 14 ? 'text-amber-600 font-medium' : 'text-slate-500';
+  const text = tage <= 0 ? 'heute' : tage === 1 ? '1 Tag' : `${tage} Tage`;
+  return <span className={farbe}>{text}</span>;
+}
 
 export default function RechnungenListe({ navigate, angebote = [], token, firma }) {
   const [suche, setSuche] = useState('');
@@ -131,7 +147,7 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma 
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-100">
-                {['Rechnungsnr.', 'Angebotsnr.', 'Kunde', 'Betreff', 'Datum', 'Betrag', 'Status', ''].map((h, i) => (
+                {['Rechnungsnr.', 'Angebotsnr.', 'Kunde', 'Betreff', 'Datum', 'Offen seit', 'Betrag', 'Status', ''].map((h, i) => (
                   <th key={i} className={`px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50
                     ${h === 'Betrag' ? 'text-right' : 'text-left'}`}>{h}</th>
                 ))}
@@ -160,13 +176,16 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma 
                     <td className="px-4 py-3.5 text-sm text-slate-500 whitespace-nowrap">
                       {a.rechnungsDatum || a.datum || '—'}
                     </td>
+                    <td className="px-4 py-3.5 text-sm whitespace-nowrap">
+                      <OffenSeit rechnung={a} />
+                    </td>
                     <td className="px-4 py-3.5 text-sm font-semibold text-slate-800 text-right whitespace-nowrap">
                       {formatBetrag(a.brutto)} €
                     </td>
                     <td className="px-4 py-3.5">
                       <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold border ${s.bg} ${s.text} ${s.border}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-                        {s.label}
+                        {a.status === 'angenommen' ? 'Offen' : s.label}
                       </span>
                     </td>
                     <td className="px-4 py-3.5">

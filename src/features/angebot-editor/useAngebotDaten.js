@@ -10,6 +10,11 @@ function mitIds(data) {
   return { ...data, positionen: mitPositionsIds(data.positionen || []) };
 }
 
+// Vergleichsstand ohne Firmendaten: Die werden im Editor nicht bearbeitet und enthalten das Logo.
+function vergleichsStand(data) {
+  return JSON.stringify({ ...data, firma: undefined });
+}
+
 function einleitungsVorlage(firma) {
   return firma.einleitungAngebot ?? defaultData.firma.einleitungAngebot;
 }
@@ -20,6 +25,8 @@ export default function useAngebotDaten({ params, firma, angebote, token }) {
 
   const [loading, setLoading] = useState(!!params?.angebotId);
   const [data, setData] = useState(() => mitIds(initData(params, firma, angebote)));
+  // Zuletzt gespeicherter Stand; null, solange ein bestehendes Angebot noch lädt
+  const [gespeicherterStand, setGespeicherterStand] = useState(() => params?.angebotId ? null : vergleichsStand(data));
   const [meta, setMeta] = useState(() => metaAus(gespeichert));
   const [aktivesId, setAktivesId] = useState(params?.angebotId || null);
 
@@ -27,7 +34,9 @@ export default function useAngebotDaten({ params, firma, angebote, token }) {
     if (!params?.angebotId) return;
     loadAngebotFull(token, params.angebotId)
       .then(full => {
-        setData(mitIds({ ...full.snapshot, firma: firma || defaultData.firma }));
+        const geladen = mitIds({ ...full.snapshot, firma: firma || defaultData.firma });
+        setData(geladen);
+        setGespeicherterStand(vergleichsStand(geladen));
         setMeta(metaAus(full));
         setLoading(false);
       })
@@ -94,13 +103,21 @@ export default function useAngebotDaten({ params, firma, angebote, token }) {
   }
 
   function zuruecksetzen() {
-    setData(mitIds({ ...defaultData, firma: firma || defaultData.firma }));
+    const leer = mitIds({ ...defaultData, firma: firma || defaultData.firma });
+    setData(leer);
+    setGespeicherterStand(vergleichsStand(leer));
     setAktivesId(null);
     setMeta(m => ({ ...m, status: 'entwurf' }));
   }
 
+  const ungespeichert = gespeicherterStand !== null && vergleichsStand(data) !== gespeicherterStand;
+
+  function alsGespeichertMarkieren(dokument) {
+    setGespeicherterStand(vergleichsStand(dokument));
+  }
+
   return {
-    loading, data, meta, setMeta, aktivesId, setAktivesId,
+    loading, data, meta, setMeta, aktivesId, setAktivesId, ungespeichert, alsGespeichertMarkieren,
     set, setDatum, setAnrede, setKundeName, kundeUebernehmen, kundeLeeren,
     setPositionen, positionenAusKatalog, zuruecksetzen,
   };

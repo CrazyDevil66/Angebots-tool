@@ -6,7 +6,7 @@ import StatusDropdown from '../../components/StatusDropdown';
 const KNOPF = 'flex items-center gap-2 px-4 py-1.5 text-sm font-semibold rounded-lg transition-all';
 
 export default function EditorTopbar({
-  titel, meta, isNeu, kundeEmail, pdfLoading, savedHint,
+  titel, meta, isNeu, kundeEmail, pdfLoading, savedHint, ungespeichert,
   onZurueck, onStatusChange, onReset, onSpeichern, onAngebotPDF, onMail,
   onRechnungErstellen, onRechnungPDF, onMahnung, onBezahlt,
 }) {
@@ -33,6 +33,13 @@ export default function EditorTopbar({
             <RotateCcw size={14} />
             Zurücksetzen
           </button>
+
+          {ungespeichert && !savedHint && (
+            <span className="flex items-center gap-1.5 text-xs font-medium text-amber-600 whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              Nicht gespeichert
+            </span>
+          )}
 
           <button
             onClick={onSpeichern}
