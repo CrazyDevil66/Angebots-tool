@@ -1,6 +1,7 @@
 import { Document, Page, Text, View } from '@react-pdf/renderer';
 import { berechneSummen } from '../../shared/berechnung.js';
 import { formatEuro } from '../utils/format';
+import { formatDatum } from '../utils/datum';
 import { s } from './styles';
 import { Kopfzeile, Adressfeld, MetaZeile, Fusszeile } from './teile';
 
@@ -26,7 +27,7 @@ export default function MahnungPDF({ data, mahnung }) {
 
   const stufe = mahnung.stufe;
   const titelText = STUFEN_TITEL[stufe] || STUFEN_TITEL[2];
-  const rechnungRef = `Rechnung ${data.rechnungsNr || '—'} vom ${data.rechnungsDatum || '—'}`;
+  const rechnungRef = `Rechnung ${data.rechnungsNr || '—'} vom ${formatDatum(data.rechnungsDatum) || '—'}`;
   const betreffText = `${STUFEN_LABEL[stufe] || STUFEN_LABEL[2]} zu ${rechnungRef}`;
 
   return (
@@ -40,7 +41,7 @@ export default function MahnungPDF({ data, mahnung }) {
             <View style={s.docCol}>
               <Text style={s.mahnTitle}>{titelText}</Text>
               <MetaZeile label="Mahnungs-Nr." wert={mahnung.mahnungNr || '—'} />
-              <MetaZeile label="Datum" wert={mahnung.datum || '—'} />
+              <MetaZeile label="Datum" wert={formatDatum(mahnung.datum) || '—'} />
               <MetaZeile label="Zu Rechnung" wert={data.rechnungsNr || '—'} />
               {f.email && <MetaZeile label="E-Mail" wert={f.email} style={{ marginTop: 6 }} />}
             </View>
@@ -59,7 +60,7 @@ export default function MahnungPDF({ data, mahnung }) {
               <SummenZeile label={`Mahngebühr (${STUFEN_LABEL[stufe] || `Stufe ${stufe}`})`} betrag={gebuehr} />
             )}
             <View style={s.mahnTotalRow}>
-              <Text style={s.mahnTotalLabel}>Zu zahlen bis {mahnung.frist}</Text>
+              <Text style={s.mahnTotalLabel}>Zu zahlen bis {formatDatum(mahnung.frist)}</Text>
               <Text style={s.mahnTotalValue}>{formatEuro(gesamt)}</Text>
             </View>
           </View>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FileText } from 'lucide-react';
 import { vkPreis, positionGesamt, berechneSummen } from '../../../shared/berechnung.js';
 import { formatBetrag } from '../../utils/format';
+import { formatDatum } from '../../utils/datum';
 import { MARKENFARBEN as C } from '../../lib/markenfarben';
 
 
@@ -155,7 +156,7 @@ export default function PreviewPanel({ data }) {
                         </div>
                         <div style={{ display: 'flex', gap: 8 }}>
                           <span style={{ fontSize: 11, color: C.textLight, minWidth: 60, textAlign: 'right' }}>Datum</span>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: C.textDark }}>{data.datum}</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: C.textDark }}>{formatDatum(data.datum)}</span>
                         </div>
                         {f.email && (
                           <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>

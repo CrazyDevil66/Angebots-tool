@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import {
   TrendingUp, FileText, AlertTriangle, CheckCircle2,
-  Plus, ArrowRight, Banknote, Clock, Receipt,
+  Plus, ArrowRight, Banknote, Clock, Receipt, Hourglass,
 } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import { formatBetrag } from '../utils/format';
@@ -156,11 +156,32 @@ export default function Dashboard({ navigate, angebote = [] }) {
         }
       });
 
+    // Gesendete Angebote, die in den nächsten 3 Tagen ablaufen – rechtzeitig nachfassen
+    angebote
+      .filter(a => a.status === 'gesendet')
+      .forEach(a => {
+        const seit = tageSeit(a.gueltigBis);
+        if (seit === null) return;
+        const bis = -seit;
+        if (bis < 0 || bis > 3) return;
+        const wann = bis === 0 ? 'läuft heute ab' : bis === 1 ? 'läuft morgen ab' : `läuft in ${bis} Tagen ab`;
+        liste.push({
+          id:    a.id,
+          prio:  'mittel',
+          icon:  Hourglass,
+          titel: `${a.angebotNr} — ${a.kundeDisplay || '—'}`,
+          info:  `${wann} · nachfassen? · ${formatBetrag(a.brutto)} €`,
+        });
+      });
+
     return liste.sort((a, b) => (a.prio === 'hoch' && b.prio !== 'hoch' ? -1 : 1));
   }, [angebote]);
 
-  // ── Letzte Aktivitäten ──
-  const letzte = angebote.slice(0, 8);
+  // ── Letzte Aktivitäten: zuletzt geänderte zuerst ──
+  const zuletztGeaendert = a => a.updatedAt || a.savedAt || '';
+  const letzte = [...angebote]
+    .sort((a, b) => zuletztGeaendert(b).localeCompare(zuletztGeaendert(a)))
+    .slice(0, 8);
 
   const heute = new Date().toLocaleDateString('de-DE', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -196,6 +217,7 @@ export default function Dashboard({ navigate, angebote = [] }) {
             sub={`${stats.bezahltAnz} Rechnung${stats.bezahltAnz !== 1 ? 'en' : ''} bezahlt`}
             icon={Banknote}
             accent="teal"
+            onClick={() => navigate('rechnungen', { tab: 'bezahlt' })}
           />
           <KpiCard
             label="Offene Rechnungen"
@@ -203,7 +225,7 @@ export default function Dashboard({ navigate, angebote = [] }) {
             sub={`${stats.offenAnz} ausstehend`}
             icon={Receipt}
             accent="amber"
-            onClick={stats.offenAnz > 0 ? () => navigate('angebote') : undefined}
+            onClick={() => navigate('rechnungen', { tab: 'angenommen' })}
           />
           <KpiCard
             label="Mahnungen"
@@ -211,7 +233,7 @@ export default function Dashboard({ navigate, angebote = [] }) {
             sub={stats.mahnAnz > 0 ? 'Sofort handeln' : 'Alles im grünen Bereich'}
             icon={AlertTriangle}
             accent={stats.mahnAnz > 0 ? 'red' : 'indigo'}
-            onClick={stats.mahnAnz > 0 ? () => navigate('angebote') : undefined}
+            onClick={() => navigate('rechnungen', { tab: 'gemahnt' })}
           />
           <KpiCard
             label="Erfolgsquote"
@@ -219,6 +241,7 @@ export default function Dashboard({ navigate, angebote = [] }) {
             sub={`${stats.angenommenAnz} von ${stats.entschieden} entschiedenen Angeboten`}
             icon={TrendingUp}
             accent="indigo"
+            onClick={() => navigate('angebote')}
           />
         </div>
 
@@ -297,7 +320,7 @@ export default function Dashboard({ navigate, angebote = [] }) {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
-                  {['Nummer', 'Kunde', 'Betreff', 'Datum', 'Betrag', 'Status'].map((h, i) => (
+                  {['Nummer', 'Kunde', 'Betreff', 'Geändert', 'Betrag', 'Status'].map((h, i) => (
                     <th
                       key={h}
                       className={`px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide ${i === 4 ? 'text-right' : 'text-left'}`}
@@ -322,12 +345,14 @@ export default function Dashboard({ navigate, angebote = [] }) {
                         )}
                       </div>
                     </td>
-                    <td className="px-5 py-3.5 text-sm text-slate-700">{a.kundeDisplay || '—'}</td>
-                    <td className="px-5 py-3.5 text-sm text-slate-500 max-w-[200px] truncate">
+                    <td className="px-5 py-3.5 text-sm text-slate-700 whitespace-nowrap">{a.kundeDisplay || '—'}</td>
+                    <td className="px-5 py-3.5 text-sm text-slate-500 w-full max-w-0 truncate" title={a.betreff || undefined}>
                       {a.betreff || <span className="italic text-slate-300">Kein Betreff</span>}
                     </td>
-                    <td className="px-5 py-3.5 text-sm text-slate-400">
-                      {a.savedAt ? new Date(a.savedAt).toLocaleDateString('de-DE') : '—'}
+                    <td className="px-5 py-3.5 text-sm text-slate-400 whitespace-nowrap">
+                      {zuletztGeaendert(a)
+                        ? new Date(zuletztGeaendert(a)).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                        : '—'}
                     </td>
                     <td className="px-5 py-3.5 text-sm font-semibold text-slate-800 text-right tabular-nums">
                       {formatBetrag(a.brutto)} €

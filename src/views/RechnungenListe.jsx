@@ -2,7 +2,9 @@ import { useState, useMemo } from 'react';
 import { Search, Download, Pencil, ChevronDown } from 'lucide-react';
 import { loadAngebotFull } from '../api/angebote';
 import { formatBetrag } from '../utils/format';
-import { tageSeit } from '../utils/datum';
+import { tageSeit, formatDatum, parseDEDate } from '../utils/datum';
+import { sortiere, naechsteSortierung } from '../utils/sortierung';
+import SortierKopf from '../components/SortierKopf';
 import { generatePDF } from '../pdf/ladePDF';
 import { rechnungsDokument } from '../utils/angebote';
 import { getStatus } from '../lib/statusConfig';
@@ -15,6 +17,32 @@ const TABS = [
   { id: 'gemahnt',    label: 'Gemahnt' },
   { id: 'bezahlt',    label: 'Bezahlt' },
 ];
+
+const SORTIER_WERTE = {
+  rechnung:  a => a.rechnungsNr,
+  angebot:   a => a.angebotNr,
+  kunde:     a => a.kundeDisplay,
+  datum:     a => parseDEDate(a.rechnungsDatum || a.datum),
+  offenSeit: a => a.status === 'bezahlt' ? null : tageSeit(a.rechnungsDatum),
+  betrag:    a => a.brutto,
+};
+
+const SPALTEN = [
+  { label: 'Rechnungsnr.', feld: 'rechnung' },
+  { label: 'Angebotsnr.', feld: 'angebot' },
+  { label: 'Kunde', feld: 'kunde' },
+  { label: 'Betreff' },
+  { label: 'Datum', feld: 'datum' },
+  { label: 'Offen seit', feld: 'offenSeit' },
+  { label: 'Betrag', feld: 'betrag', rechts: true },
+  { label: 'Status' },
+  { label: '' },
+];
+
+// Offene Rechnungen gelb statt im Grün von „Angenommen“
+const OFFEN_STIL = { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-500', label: 'Offen' };
+
+const nichtWeiterreichen = e => e.stopPropagation();
 
 // Wie lange eine Rechnung offen ist; Schwellen wie beim Handlungsbedarf im Dashboard.
 function OffenSeit({ rechnung }) {
@@ -31,10 +59,11 @@ function OffenSeit({ rechnung }) {
   return <span className={farbe}>{text}</span>;
 }
 
-export default function RechnungenListe({ navigate, angebote = [], token, firma }) {
+export default function RechnungenListe({ navigate, angebote = [], token, firma, params = {} }) {
   const [suche, setSuche] = useState('');
   const [kundeFilter, setKundeFilter] = useState('alle');
-  const [aktiveTab, setAktiveTab] = useState('alle');
+  const [aktiveTab, setAktiveTab] = useState(params.tab || 'alle');
+  const [sortierung, setSortierung] = useState(null);
   const [pdfLoading, setPdfLoading] = useState(null);
 
   const rechnungen = useMemo(() =>
@@ -67,6 +96,8 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma 
       return matchSuche && matchKunde && matchTab;
     });
   }, [rechnungen, suche, kundeFilter, aktiveTab]);
+
+  const sortiert = useMemo(() => sortiere(gefiltert, sortierung, SORTIER_WERTE), [gefiltert, sortierung]);
 
   async function handlePDF(a) {
     setPdfLoading(a.id);
@@ -147,34 +178,38 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma 
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-100">
-                {['Rechnungsnr.', 'Angebotsnr.', 'Kunde', 'Betreff', 'Datum', 'Offen seit', 'Betrag', 'Status', ''].map((h, i) => (
-                  <th key={i} className={`px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50
-                    ${h === 'Betrag' ? 'text-right' : 'text-left'}`}>{h}</th>
+                {SPALTEN.map((spalte, i) => (
+                  <SortierKopf
+                    key={i}
+                    {...spalte}
+                    sortierung={sortierung}
+                    onSortieren={feld => setSortierung(s => naechsteSortierung(s, feld))}
+                  />
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {gefiltert.map(a => {
-                const s = cfg(a.status);
+              {sortiert.map(a => {
+                const s = a.status === 'angenommen' ? OFFEN_STIL : cfg(a.status);
+                const betreff = a.rechnungsBetreff || a.betreff;
                 return (
-                  <tr key={a.id} className="hover:bg-slate-50/80 transition-colors group">
-                    <td className="px-4 py-3.5">
+                  <tr
+                    key={a.id}
+                    onClick={() => navigate('angebot-editor', { angebotId: a.id })}
+                    className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
+                  >
+                    <td className="px-4 py-3.5 whitespace-nowrap">
                       <span className="text-sm font-semibold text-emerald-600">{a.rechnungsNr}</span>
                     </td>
-                    <td className="px-4 py-3.5">
-                      <button
-                        onClick={() => navigate('angebot-editor', { angebotId: a.id })}
-                        className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
-                      >
-                        {a.angebotNr}
-                      </button>
+                    <td className="px-4 py-3.5 whitespace-nowrap">
+                      <span className="text-sm font-medium text-indigo-600 group-hover:text-indigo-700">{a.angebotNr}</span>
                     </td>
-                    <td className="px-4 py-3.5 text-sm text-slate-700">{a.kundeDisplay || '—'}</td>
-                    <td className="px-4 py-3.5 text-sm text-slate-500 max-w-[160px] truncate">
-                      {a.rechnungsBetreff || a.betreff || <span className="italic text-slate-300">—</span>}
+                    <td className="px-4 py-3.5 text-sm text-slate-700 whitespace-nowrap">{a.kundeDisplay || '—'}</td>
+                    <td className="px-4 py-3.5 text-sm text-slate-500 w-full max-w-0 truncate" title={betreff || undefined}>
+                      {betreff || <span className="italic text-slate-300">—</span>}
                     </td>
                     <td className="px-4 py-3.5 text-sm text-slate-500 whitespace-nowrap">
-                      {a.rechnungsDatum || a.datum || '—'}
+                      {formatDatum(a.rechnungsDatum || a.datum) || '—'}
                     </td>
                     <td className="px-4 py-3.5 text-sm whitespace-nowrap">
                       <OffenSeit rechnung={a} />
@@ -185,11 +220,11 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma 
                     <td className="px-4 py-3.5">
                       <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold border ${s.bg} ${s.text} ${s.border}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-                        {a.status === 'angenommen' ? 'Offen' : s.label}
+                        {s.label}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <td className="px-4 py-3.5" onClick={nichtWeiterreichen}>
+                      <div className="flex items-center gap-1">
                         <button
                           onClick={() => navigate('angebot-editor', { angebotId: a.id })}
                           className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"

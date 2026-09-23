@@ -2,6 +2,7 @@ import { Settings } from 'lucide-react';
 import Collapse from '../../../components/Collapse';
 import FormField, { Input } from '../../../components/FormField';
 import DateInput from '../../../components/DateInput';
+import { formatDatum } from '../../../utils/datum';
 
 export default function AngebotInfos({ data, set, setDatum }) {
   return (
@@ -15,7 +16,7 @@ export default function AngebotInfos({ data, set, setDatum }) {
         </FormField>
         <FormField label="Gültig bis (auto)">
           <div className="w-full px-3 py-2 text-sm border border-slate-100 rounded-lg bg-slate-50 text-slate-400 select-none">
-            {data.gueltigBis || '—'}
+            {formatDatum(data.gueltigBis) || '—'}
           </div>
         </FormField>
         <FormField label="MwSt. (%)">

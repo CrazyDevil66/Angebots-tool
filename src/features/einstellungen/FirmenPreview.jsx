@@ -1,4 +1,5 @@
 import { MARKENFARBEN as C } from '../../lib/markenfarben';
+import { heuteDE } from '../../utils/datum';
 
 function PreviewRow({ label, value }) {
   if (!value) return null;
@@ -67,7 +68,7 @@ function DokumentVorschau({ firma }) {
           <div className="flex flex-col items-end gap-1.5 shrink-0">
             <div className="font-bold tracking-widest mb-1" style={{ fontSize: 11, color: C.dark, fontFamily: 'monospace' }}>ANGEBOT</div>
             <PreviewRow label="Nummer"  value={firma.name ? 'A-2026-001' : undefined} />
-            <PreviewRow label="Datum"   value={new Date().toLocaleDateString('de-DE')} />
+            <PreviewRow label="Datum"   value={heuteDE()} />
             <PreviewRow label="E-Mail"  value={firma.email} />
             <PreviewRow label="Telefon" value={firma.telefon} />
           </div>

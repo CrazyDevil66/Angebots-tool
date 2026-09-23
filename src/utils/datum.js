@@ -13,8 +13,22 @@ export function tageSeit(deStr, jetzt = new Date()) {
   return Math.round((heute - datum) / 86400000);
 }
 
+function zweistellig(n) {
+  return String(n).padStart(2, '0');
+}
+
+function alsDE(datum) {
+  return `${zweistellig(datum.getDate())}.${zweistellig(datum.getMonth() + 1)}.${datum.getFullYear()}`;
+}
+
+// Anzeige immer als TT.MM.JJJJ – ältere Werte sind ohne führende Null gespeichert ("1.9.2026").
+export function formatDatum(deStr) {
+  const datum = parseDEDate(deStr);
+  return datum && !isNaN(datum) ? alsDE(datum) : (deStr || '');
+}
+
 export function heuteDE() {
-  return new Date().toLocaleDateString('de-DE');
+  return alsDE(new Date());
 }
 
 export function add14Days(deDatum) {
@@ -23,7 +37,7 @@ export function add14Days(deDatum) {
   if (!d || !m || !y) return '';
   const date = new Date(y, m - 1, d);
   date.setDate(date.getDate() + 14);
-  return date.toLocaleDateString('de-DE');
+  return alsDE(date);
 }
 
 export function deToIso(de) {

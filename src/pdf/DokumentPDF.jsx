@@ -2,7 +2,7 @@ import { Document, Page, Text, View } from '@react-pdf/renderer';
 import { vkPreis, positionGesamt, berechneSummen } from '../../shared/berechnung.js';
 import { MARKENFARBEN as C } from '../lib/markenfarben';
 import { formatEuro } from '../utils/format';
-import { heuteDE } from '../utils/datum';
+import { heuteDE, formatDatum } from '../utils/datum';
 import { s } from './styles';
 import { Kopfzeile, Adressfeld, MetaZeile, Fusszeile } from './teile';
 
@@ -78,7 +78,7 @@ export default function DokumentPDF({ data, typ = 'angebot' }) {
             <View style={s.docCol}>
               <Text style={s.docTitle}>{titelText}</Text>
               <MetaZeile label={nummerLabel} wert={nummerWert} />
-              <MetaZeile label="Datum" wert={datumWert} />
+              <MetaZeile label="Datum" wert={formatDatum(datumWert)} />
               {f.email && <MetaZeile label="E-Mail" wert={f.email} style={{ marginTop: 6 }} />}
               {f.telefon && <MetaZeile label="Telefon" wert={f.telefon} />}
             </View>

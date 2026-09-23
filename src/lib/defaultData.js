@@ -1,3 +1,5 @@
+import { heuteDE } from '../utils/datum';
+
 export const defaultData = {
   firma: {
     name: '',
@@ -31,7 +33,7 @@ export const defaultData = {
     telefon: '',
   },
   angebotNr: `A-${new Date().getFullYear()}-001`,
-  datum: new Date().toLocaleDateString('de-DE'),
+  datum: heuteDE(),
   gueltigBis: '',
   betreff: 'Angebot',
   einleitung: 'vielen Dank für Ihr Interesse. Gerne unterbreiten wir Ihnen folgendes Angebot:',

@@ -131,7 +131,7 @@ export default function BenutzerVerwaltung({ token, currentUser }) {
                   )}
                 </div>
                 <div className="text-xs text-slate-400 mt-0.5">
-                  {u.email || 'Keine E-Mail'} · Seit {new Date(u.createdAt).toLocaleDateString('de-DE')}
+                  {u.email || 'Keine E-Mail'} · Seit {new Date(u.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">

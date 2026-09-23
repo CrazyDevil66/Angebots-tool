@@ -93,7 +93,6 @@ export default function AngebotEditor({
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(360px,42%)] gap-6">
           <div className="flex flex-col gap-5">
             <AngebotInfos data={data} set={set} setDatum={formular.setDatum} />
-            <FirmendatenInfo firma={data.firma} onEinstellungen={() => navigate('einstellungen')} />
             <KundenDaten
               kunde={data.kunde}
               kunden={kunden}
@@ -104,13 +103,14 @@ export default function AngebotEditor({
               onLeeren={formular.kundeLeeren}
               onKundenVerwalten={() => navigate('kunden')}
             />
-            <Anschreiben data={data} set={set} />
             <Positionen
               positionen={data.positionen}
               onChange={formular.setPositionen}
               onAusKatalog={() => setKatalogPickerOffen(true)}
             />
+            <Anschreiben data={data} set={set} />
             <Hinweise hinweise={data.hinweise} set={set} />
+            <FirmendatenInfo firma={data.firma} onEinstellungen={() => navigate('einstellungen')} />
           </div>
 
           <div><PreviewPanel data={data} /></div>
