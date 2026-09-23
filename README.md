@@ -46,6 +46,7 @@ docker run -d \
 | `PORT` | Interner Port des Servers | `3000` |
 | `JWT_SECRET` | Geheimer Schlüssel für JWT-Token. Wird automatisch generiert wenn leer. | *(automatisch)* |
 | `BASE_URL` | Externe URL der App, z.B. `https://angebote.meinserver.de` | *(optional)* |
+| `TRUST_PROXY` | Nur hinter Reverse-Proxy/Cloudflare setzen: Anzahl der Proxys vor dem Container (z.B. `1`) oder deren Adressen (z.B. `172.17.0.0/16`). Ohne Angabe sieht die Login-Sperre bei Zugriff über einen Proxy alle Nutzer als eine IP. | *(aus)* |
 
 ## Datenspeicherung
 

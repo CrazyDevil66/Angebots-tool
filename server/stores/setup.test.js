@@ -55,3 +55,11 @@ test('richteErstenAdminEin: nach der Einrichtung gesperrt', async () => {
   await assert.rejects(() => users.richteErstenAdminEin('zweiter', 'geheim123'), /Bereits eingerichtet/);
   assert.equal(users.readUsers().length, 1);
 });
+
+test('beschädigte users.json öffnet die Erstkonfiguration nicht und bleibt unverändert', async () => {
+  const datei = path.join(tmpDir, 'users.json');
+  fs.writeFileSync(datei, '[{"id": "a", "passwordHash": "x"');
+  assert.throws(() => users.istEingerichtet(), /beschädigt/);
+  await assert.rejects(() => users.richteErstenAdminEin('angreifer', 'geheim123'), /beschädigt/);
+  assert.equal(fs.readFileSync(datei, 'utf8'), '[{"id": "a", "passwordHash": "x"');
+});

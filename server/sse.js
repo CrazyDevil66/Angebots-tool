@@ -1,4 +1,4 @@
-const { verifyToken } = require('./middleware/auth');
+const { verifyToken, benutzerZumToken } = require('./middleware/auth');
 
 const clients = new Set();
 
@@ -17,9 +17,11 @@ function broadcastDataUpdate(dataType) {
 function eventsHandler(req, res) {
   const token = req.query.token;
   if (!token) return res.status(401).json({ error: 'Token fehlt' });
-  try { verifyToken(token); } catch {
+  let payload;
+  try { payload = verifyToken(token); } catch {
     return res.status(401).json({ error: 'Ungültiger Token' });
   }
+  if (!benutzerZumToken(payload)) return res.status(401).json({ error: 'Sitzung ungültig, bitte neu anmelden' });
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',

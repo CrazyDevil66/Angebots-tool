@@ -1,7 +1,7 @@
-const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { dataDir } = require('./paths');
+const { leseJson, schreibeJsonAtomar } = require('./lib/jsonDatei');
 
 const PORT = process.env.PORT || 3000;
 
@@ -10,27 +10,20 @@ function configFile() {
 }
 
 function readConfig() {
-  try {
-    const f = configFile();
-    if (!fs.existsSync(f)) return {};
-    return JSON.parse(fs.readFileSync(f, 'utf8'));
-  } catch { return {}; }
+  return leseJson(configFile(), {});
 }
 
 function writeConfig(update) {
-  fs.mkdirSync(dataDir(), { recursive: true });
-  fs.writeFileSync(configFile(), JSON.stringify({ ...readConfig(), ...update }, null, 2));
+  schreibeJsonAtomar(configFile(), { ...readConfig(), ...update });
 }
 
 function getJwtSecret() {
   if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
-  const config = readConfig();
-  if (!config.jwtSecret) {
-    config.jwtSecret = crypto.randomBytes(48).toString('hex');
-    fs.mkdirSync(dataDir(), { recursive: true });
-    fs.writeFileSync(configFile(), JSON.stringify(config, null, 2));
-  }
-  return config.jwtSecret;
+  const { jwtSecret } = readConfig();
+  if (jwtSecret) return jwtSecret;
+  const neu = crypto.randomBytes(48).toString('hex');
+  writeConfig({ jwtSecret: neu });
+  return neu;
 }
 
 module.exports = { PORT, readConfig, writeConfig, getJwtSecret };

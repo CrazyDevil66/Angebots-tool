@@ -1,23 +1,23 @@
-const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
 const { dataDir } = require('../paths');
+const { leseJson, schreibeJsonAtomar } = require('../lib/jsonDatei');
 
 const USERS_FILE = () => path.join(dataDir(), 'users.json');
 
 function readUsers() {
-  try {
-    const f = USERS_FILE();
-    if (!fs.existsSync(f)) return [];
-    return JSON.parse(fs.readFileSync(f, 'utf8'));
-  } catch { return []; }
+  return leseJson(USERS_FILE(), []);
 }
 
 function writeUsers(users) {
-  fs.mkdirSync(dataDir(), { recursive: true });
-  fs.writeFileSync(USERS_FILE(), JSON.stringify(users, null, 2));
+  schreibeJsonAtomar(USERS_FILE(), users);
+}
+
+// Jeder Passwortwechsel erhöht die Version und macht damit alle älteren Tokens ungültig.
+function erhoeheTokenVersion(user) {
+  user.tokenVersion = (user.tokenVersion || 0) + 1;
 }
 
 function findById(id) {
@@ -60,6 +60,7 @@ async function setPassword(id, password) {
   const idx = all.findIndex(u => u.id === id);
   if (idx === -1) throw new Error('Benutzer nicht gefunden');
   all[idx].passwordHash = await bcrypt.hash(password, 10);
+  erhoeheTokenVersion(all[idx]);
   all[idx].mustChangePassword = false;
   all[idx].inviteToken = null;
   all[idx].inviteExpiry = null;
@@ -76,6 +77,7 @@ async function setInitialPassword(id) {
   const idx = all.findIndex(u => u.id === id);
   if (idx === -1) throw new Error('Benutzer nicht gefunden');
   all[idx].passwordHash = await bcrypt.hash(password, 10);
+  erhoeheTokenVersion(all[idx]);
   all[idx].mustChangePassword = true;
   writeUsers(all);
   return password;
