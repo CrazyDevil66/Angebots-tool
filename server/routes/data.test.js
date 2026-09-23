@@ -46,9 +46,11 @@ test('Firmendaten: nur Admins dürfen speichern', async () => {
   assert.equal(await put('firma', { name: 'Neu' }, adminToken), 200);
 });
 
-test('Kunden und Katalog: auch normale Benutzer dürfen speichern', async () => {
-  assert.equal(await put('kunden', [], userToken), 200);
-  assert.equal(await put('katalog', [], userToken), 200);
+test('Kunden und Katalog: ganze Liste ersetzen ist gesperrt, auch für Admins', async () => {
+  for (const token of [userToken, adminToken]) {
+    assert.equal(await put('kunden', [], token), 400);
+    assert.equal(await put('katalog', [], token), 400);
+  }
 });
 
 async function anfrage(method, pfad, body, token) {

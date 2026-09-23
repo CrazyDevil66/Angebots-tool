@@ -20,13 +20,16 @@ router.get('/:type', pruefeTyp, (req, res) => {
   }
 });
 
-// Firmendaten und Textvorlagen ändern nur Admins, Kunden und Katalog alle Benutzer.
-function nurAdminFuerFirma(req, res, next) {
-  if (req.params.type === 'firma') return requireAdmin(req, res, next);
-  next();
+// Ganze Datei ersetzen nur bei den Firmendaten (Admins). Kunden und Katalog werden einzeln
+// gespeichert – sonst könnte eine einzige Anfrage die komplette Liste überschreiben.
+function nurFirmaDurchAdmins(req, res, next) {
+  if (req.params.type !== 'firma') {
+    return res.status(400).json({ error: 'Kunden und Leistungen werden einzeln gespeichert' });
+  }
+  requireAdmin(req, res, next);
 }
 
-router.put('/:type', pruefeTyp, nurAdminFuerFirma, (req, res) => {
+router.put('/:type', pruefeTyp, nurFirmaDurchAdmins, (req, res) => {
   try {
     dataStore.writeData(req.params.type, req.body);
     broadcastDataUpdate(req.params.type);
