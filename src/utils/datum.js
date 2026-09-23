@@ -1,11 +1,6 @@
 // Datumswerte werden im Projekt als deutsche Strings "TT.MM.JJJJ" gespeichert.
 
-export function parseDEDate(str) {
-  if (!str) return null;
-  const [d, m, y] = str.split('.');
-  if (!d || !m || !y) return null;
-  return new Date(Number(y), Number(m) - 1, Number(d));
-}
+export { parseDEDate } from '../../shared/datum.js';
 
 export function heuteDE() {
   return new Date().toLocaleDateString('de-DE');

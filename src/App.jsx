@@ -12,10 +12,9 @@ import InviteScreen from './features/auth/InviteScreen';
 import ChangePasswordModal from './features/auth/ChangePasswordModal';
 import LadeFehler from './features/auth/LadeFehler';
 import { loadFirma, loadKunden, loadKatalog } from './api/stammdaten';
-import { loadAngebote, setAngebotStatus } from './api/angebote';
+import { loadAngebote } from './api/angebote';
 import { apiSetupRequired, apiMe, getToken, saveToken, clearToken } from './api/auth';
 import { SITZUNG_ABGELAUFEN } from './api/client';
-import { autoMarkAbgelaufen } from './utils/angebote';
 import { defaultData } from './lib/defaultData';
 
 function istEinladungsLink() {
@@ -52,17 +51,7 @@ export default function App() {
     setFirma(f || defaultData.firma);
     setKunden(k);
     setKatalog(kat);
-    const { updated, changed } = autoMarkAbgelaufen(a);
-    if (changed) {
-      const abgelaufen = updated.filter((u, i) => u !== a[i]);
-      let latestIndex = updated;
-      for (const entry of abgelaufen) {
-        latestIndex = await setAngebotStatus(token, entry.id, 'abgelaufen');
-      }
-      setAngebote(latestIndex);
-    } else {
-      setAngebote(a);
-    }
+    setAngebote(a);
   }
 
   function openSSE(token) {

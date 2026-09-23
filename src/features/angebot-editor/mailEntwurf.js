@@ -18,5 +18,7 @@ export function mailEntwurfLink(data) {
     (f.email   ? `\nMail: ${f.email}`   : '')
   );
 
-  return `mailto:${k.email || ''}?subject=${subject}&body=${body}`;
+  // Ohne Escaping könnte eine Adresse wie "a@b.de?bcc=…" weitere Empfänger einschleusen.
+  const empfaenger = encodeURIComponent(k.email || '').replace(/%40/g, '@');
+  return `mailto:${empfaenger}?subject=${subject}&body=${body}`;
 }

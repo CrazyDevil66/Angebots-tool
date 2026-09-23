@@ -25,6 +25,7 @@ export default function Einstellungen({ token, currentUser, onLogout, firma, set
   // Zuletzt gespeicherter bzw. vom Server geladener Stand. Ohne diesen Vergleich löst das
   // Neuladen per Live-Update erneut ein Speichern aus – eine Endlosschleife.
   const letzterStand = useRef(null);
+  const istAdmin = currentUser?.role === 'admin';
 
   function triggerSaved() {
     setSpeicherFehler(null);
@@ -34,7 +35,8 @@ export default function Einstellungen({ token, currentUser, onLogout, firma, set
   }
 
   useEffect(() => {
-    if (!token || !firma) return;
+    // Nur Admins dürfen Firmendaten ändern – sonst würde ein Live-Update als Echo zurückgespeichert.
+    if (!token || !firma || !istAdmin) return;
     const stand = JSON.stringify(firma);
     if (letzterStand.current === null) letzterStand.current = stand;
     if (stand === letzterStand.current) return;
@@ -49,10 +51,9 @@ export default function Einstellungen({ token, currentUser, onLogout, firma, set
       }
     }, 500);
     return () => clearTimeout(saveTimer.current);
-  }, [firma, token]);
+  }, [firma, token, istAdmin]);
 
   const set = (field, val) => setFirma(prev => ({ ...prev, [field]: val }));
-  const istAdmin = currentUser?.role === 'admin';
 
   return (
     <div className="min-h-full bg-gradient-to-br from-slate-50 to-indigo-50/20">
@@ -104,19 +105,28 @@ export default function Einstellungen({ token, currentUser, onLogout, firma, set
           {/* ── Linke Spalte: Einstellungen ── */}
           <div className="flex flex-col gap-4">
 
-            {tab === 'firma' && (
-              <FirmaTab
-                firma={firma}
-                setFeld={set}
-                istAdmin={istAdmin}
-                token={token}
-                setFirma={setFirma}
-                setKunden={setKunden}
-                setKatalog={setKatalog}
-                setAngebote={setAngebote}
-              />
+            {!istAdmin && ['firma', 'texte'].includes(tab) && (
+              <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg px-4 py-2.5">
+                Firmendaten und Textvorlagen können nur Admins ändern.
+              </div>
             )}
-            {tab === 'texte' && <TexteTab firma={firma} setFeld={set} />}
+            {['firma', 'texte'].includes(tab) && (
+              <fieldset disabled={!istAdmin} className="flex flex-col gap-4 min-w-0">
+                {tab === 'firma' && (
+                  <FirmaTab
+                    firma={firma}
+                    setFeld={set}
+                    istAdmin={istAdmin}
+                    token={token}
+                    setFirma={setFirma}
+                    setKunden={setKunden}
+                    setKatalog={setKatalog}
+                    setAngebote={setAngebote}
+                  />
+                )}
+                {tab === 'texte' && <TexteTab firma={firma} setFeld={set} />}
+              </fieldset>
+            )}
             {tab === 'katalog' && (
               <KatalogTab token={token} katalog={katalog} setKatalog={setKatalog} onGespeichert={triggerSaved} onFehler={setSpeicherFehler} />
             )}

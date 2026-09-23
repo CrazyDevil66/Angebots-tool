@@ -40,3 +40,14 @@ test('Zaehler startet neu nach abgelaufener Sperre', () => {
   for (let i = 0; i < 4; i++) auth.recordFailure('10.0.0.6');
   assert.equal(auth.checkLockout('10.0.0.6'), false);
 });
+
+test('aufraeumen entfernt abgelaufene Sperren und alte Fehlversuche, behält aktive', () => {
+  auth._resetAll();
+  for (let i = 0; i < 5; i++) auth.recordFailure('10.1.0.1'); // gesperrt
+  auth.recordFailure('10.1.0.2'); // ein Fehlversuch
+  auth.aufraeumen(Date.now());
+  assert.equal(auth._anzahlEintraege(), 2);
+  auth.aufraeumen(Date.now() + 15 * 60 * 1000 + 1);
+  assert.equal(auth._anzahlEintraege(), 0);
+  assert.equal(auth.checkLockout('10.1.0.1'), false);
+});

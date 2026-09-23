@@ -3,6 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { berechneSummen } = require('../../shared/berechnung.js');
 const { nextAngebotNr } = require('../../shared/nummern.js');
+const { istAbgelaufen } = require('../../shared/datum.js');
 const { dataDir } = require('../paths');
 const { httpFehler } = require('../lib/fehler');
 
@@ -178,6 +179,14 @@ function patchOffer(id, patch) {
   return index;
 }
 
+// Setzt Entwürfe und gesendete Angebote nach Ablauf von „gültig bis“ auf „abgelaufen“.
+// Liefert die Anzahl der geänderten Angebote.
+function markiereAbgelaufene(heute = new Date()) {
+  const faellig = readIndex().filter(e => istAbgelaufen(e, heute));
+  for (const e of faellig) patchOffer(e.id, { status: 'abgelaufen' });
+  return faellig.length;
+}
+
 function removeOffer(id) {
   offerFile(id); // ID prüfen, bevor der Index verändert wird
   const index = readIndex().filter(e => e.id !== id);
@@ -287,4 +296,5 @@ module.exports = {
   replaceAll,
   migrateIfNeeded,
   recalcBrutto,
+  markiereAbgelaufene,
 };

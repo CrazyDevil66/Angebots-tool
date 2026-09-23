@@ -64,6 +64,17 @@
     Mask="false"></Config>
 
   <Config
+    Name="TRUST_PROXY"
+    Target="TRUST_PROXY"
+    Default=""
+    Mode=""
+    Description="Nur hinter Reverse-Proxy/Cloudflare setzen: Anzahl der Proxys vor dem Container (z.B. 1) oder deren Adressen (z.B. 172.17.0.0/16). Leer = aus. Ohne diesen Wert sieht die Login-Sperre hinter einem Proxy alle Nutzer als eine IP."
+    Type="Variable"
+    Display="always"
+    Required="false"
+    Mask="false"></Config>
+
+  <Config
     Name="PORT"
     Target="PORT"
     Default="3000"

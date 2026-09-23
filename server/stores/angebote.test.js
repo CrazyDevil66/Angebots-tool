@@ -248,3 +248,20 @@ test('updateOffer: unveränderte doppelte Nummer blockiert das Speichern nicht',
   assert.equal(store.readOffer(b.id).betreff, 'geändert');
   assert.equal(a.angebotNr, 'Y-1');
 });
+
+test('markiereAbgelaufene: nur Entwürfe/gesendete nach „gültig bis“ werden abgelaufen', () => {
+  const heute = new Date(2031, 0, 15, 10, 0);
+  const faellig  = store.createOffer({ ...sampleData, angebotNr: 'Z-1', gueltigBis: '14.1.2031' }).entry;
+  const heuteNoch = store.createOffer({ ...sampleData, angebotNr: 'Z-2', gueltigBis: '15.1.2031' }).entry;
+  const angenommen = store.createOffer({ ...sampleData, angebotNr: 'Z-3', gueltigBis: '1.1.2031' }).entry;
+  store.patchOffer(angenommen.id, { status: 'angenommen' });
+
+  const vorher = store.readIndex().filter(e => e.status === 'abgelaufen').length;
+  const anzahl = store.markiereAbgelaufene(heute);
+  assert.ok(anzahl >= 1);
+  assert.equal(store.readIndex().filter(e => e.status === 'abgelaufen').length, vorher + anzahl);
+  assert.equal(store.readOffer(faellig.id).status, 'abgelaufen');
+  assert.equal(store.readOffer(heuteNoch.id).status, 'entwurf');
+  assert.equal(store.readOffer(angenommen.id).status, 'angenommen');
+  assert.equal(store.markiereAbgelaufene(heute), 0);
+});

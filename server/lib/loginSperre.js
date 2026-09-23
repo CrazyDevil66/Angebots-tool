@@ -18,6 +18,7 @@ function recordFailure(ip) {
     entry = { attempts: 0, lockedUntil: null };
   }
   entry.attempts += 1;
+  entry.lastFailure = Date.now();
   if (entry.attempts >= MAX_ATTEMPTS) entry.lockedUntil = Date.now() + LOCKOUT_MS;
   lockouts.set(ip, entry);
 }
@@ -32,8 +33,25 @@ function remainingLockoutSeconds(ip) {
   return Math.max(0, Math.ceil((entry.lockedUntil - Date.now()) / 1000));
 }
 
+// Entfernt abgelaufene Sperren und Fehlversuche, die älter als die Sperrdauer sind,
+// damit die Liste bei vielen verschiedenen IPs nicht unbegrenzt wächst.
+function aufraeumen(jetzt = Date.now()) {
+  for (const [ip, entry] of lockouts) {
+    const abgelaufen = entry.lockedUntil
+      ? jetzt >= entry.lockedUntil
+      : jetzt >= entry.lastFailure + LOCKOUT_MS;
+    if (abgelaufen) lockouts.delete(ip);
+  }
+}
+
+setInterval(aufraeumen, LOCKOUT_MS).unref();
+
+function _anzahlEintraege() {
+  return lockouts.size;
+}
+
 function _resetAll() {
   lockouts.clear();
 }
 
-module.exports = { checkLockout, recordFailure, clearLockout, remainingLockoutSeconds, _resetAll };
+module.exports = { checkLockout, recordFailure, clearLockout, remainingLockoutSeconds, aufraeumen, _anzahlEintraege, _resetAll };

@@ -1,6 +1,6 @@
 const express = require('express');
 const dataStore = require('../stores/data');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireAdmin } = require('../middleware/auth');
 const { broadcastDataUpdate } = require('../sse');
 const { sendeFehler } = require('../lib/fehler');
 
@@ -20,7 +20,13 @@ router.get('/:type', pruefeTyp, (req, res) => {
   }
 });
 
-router.put('/:type', pruefeTyp, (req, res) => {
+// Firmendaten und Textvorlagen ändern nur Admins, Kunden und Katalog alle Benutzer.
+function nurAdminFuerFirma(req, res, next) {
+  if (req.params.type === 'firma') return requireAdmin(req, res, next);
+  next();
+}
+
+router.put('/:type', pruefeTyp, nurAdminFuerFirma, (req, res) => {
   try {
     dataStore.writeData(req.params.type, req.body);
     broadcastDataUpdate(req.params.type);
