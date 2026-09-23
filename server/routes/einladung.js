@@ -1,6 +1,7 @@
 const express = require('express');
 const users = require('../stores/users');
 const { makeToken } = require('../middleware/auth');
+const { sendeFehler } = require('../lib/fehler');
 
 const router = express.Router();
 
@@ -12,8 +13,8 @@ router.post('/:token', async (req, res) => {
   try {
     await users.setPassword(user.id, password);
     res.json({ token: makeToken(users.findById(user.id)) });
-  } catch {
-    res.status(500).json({ error: 'Interner Fehler' });
+  } catch (e) {
+    sendeFehler(res, e);
   }
 });
 

@@ -70,3 +70,21 @@ test('generateInviteToken erstellt gültigen Token', () => {
   const found = users.findByInviteToken(token);
   assert.equal(found.username, 'bob');
 });
+
+test('updateUser lehnt unbekannte Rollen ab', async () => {
+  const user = await users.createUser({ username: 'rollentest' });
+  assert.throws(() => users.updateUser(user.id, { role: 'superadmin' }), /Ungültige Rolle/);
+  assert.equal(users.findById(user.id).role, 'user');
+});
+
+test('updateUser verhindert das Herabstufen des letzten Admins', async () => {
+  const admins = users.readUsers().filter(u => u.role === 'admin');
+  for (const a of admins.slice(1)) users.updateUser(a.id, { role: 'user' });
+  const letzter = users.readUsers().find(u => u.role === 'admin');
+  assert.throws(() => users.updateUser(letzter.id, { role: 'user' }), /letzten Admin/);
+
+  const zweiter = await users.createUser({ username: 'zweiteradmin', role: 'admin' });
+  users.updateUser(letzter.id, { role: 'user' });
+  assert.equal(users.findById(letzter.id).role, 'user');
+  assert.equal(users.findById(zweiter.id).role, 'admin');
+});

@@ -46,13 +46,19 @@ export default function AngeboteListe({ navigate, angebote = [], setAngebote, to
 
   async function handleDelete(id) {
     if (!confirm('Angebot endgültig löschen?')) return;
-    const updated = await deleteAngebot(token, id);
-    setAngebote(updated);
+    try {
+      setAngebote(await deleteAngebot(token, id));
+    } catch (e) {
+      alert(`Löschen fehlgeschlagen: ${e.message}`);
+    }
   }
 
   async function handleStatusChange(id, status) {
-    const updated = await setAngebotStatus(token, id, status);
-    setAngebote(updated);
+    try {
+      setAngebote(await setAngebotStatus(token, id, status));
+    } catch (e) {
+      alert(`Status konnte nicht geändert werden: ${e.message}`);
+    }
   }
 
   async function handlePDF(a) {

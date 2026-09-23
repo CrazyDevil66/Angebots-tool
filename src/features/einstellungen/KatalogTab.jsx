@@ -5,11 +5,15 @@ import { saveKatalog } from '../../api/stammdaten';
 import Section from './Section';
 import { neueId } from '../../utils/id';
 
-export default function KatalogTab({ token, katalog, setKatalog, onGespeichert }) {
+export default function KatalogTab({ token, katalog, setKatalog, onGespeichert, onFehler }) {
   async function speichere(neu) {
     setKatalog(neu);
-    await saveKatalog(token, neu);
-    onGespeichert();
+    try {
+      await saveKatalog(token, neu);
+      onGespeichert();
+    } catch (e) {
+      onFehler(e.message);
+    }
   }
 
   function katalogUpdate(id, field, value) {

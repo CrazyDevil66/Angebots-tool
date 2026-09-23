@@ -48,9 +48,14 @@ export default function useAngebotAktionen({ token, data, meta, setMeta, aktives
   }
 
   async function statusAendern(neuerStatus) {
+    const alterStatus = meta.status;
     setMeta(m => ({ ...m, status: neuerStatus }));
-    if (aktivesId) {
+    if (!aktivesId) return;
+    try {
       setAngebote(await setAngebotStatus(token, aktivesId, neuerStatus));
+    } catch (e) {
+      setMeta(m => ({ ...m, status: alterStatus }));
+      setSaveError(e.message);
     }
   }
 
@@ -102,10 +107,14 @@ export default function useAngebotAktionen({ token, data, meta, setMeta, aktives
       ...meta.mahnGebuehren.filter(g => g.stufe !== stufe),
       { stufe, betrag: Number(mahngebuehr || 0) },
     ];
+    try {
+      const id = await sicherGespeichert();
+      setAngebote(await setMahnung(token, id, stufe, mahnungNr, datum, neueGebuehren));
+    } catch (e) {
+      setSaveError(e.message);
+      return;
+    }
     setMeta(m => ({ ...m, status: 'gemahnt', mahnStufe: stufe, mahnGebuehren: neueGebuehren }));
-
-    const id = await sicherGespeichert();
-    setAngebote(await setMahnung(token, id, stufe, mahnungNr, datum, neueGebuehren));
 
     const mahnungData = { stufe, mahnungNr, datum, frist, mahngebuehr, text, vorherigeGebuehren };
     await pdfErzeugen({ ...data, rechnungsNr: meta.rechnungsNr, rechnungsDatum: meta.rechnungsDatum }, 'mahnung', mahnungData);
@@ -113,9 +122,14 @@ export default function useAngebotAktionen({ token, data, meta, setMeta, aktives
 
   async function alsBezahltMarkieren() {
     if (!confirm('Angebot/Rechnung als bezahlt markieren?')) return;
+    const alterStatus = meta.status;
     setMeta(m => ({ ...m, status: 'bezahlt' }));
-    if (aktivesId) {
+    if (!aktivesId) return;
+    try {
       setAngebote(await setBezahlt(token, aktivesId));
+    } catch (e) {
+      setMeta(m => ({ ...m, status: alterStatus }));
+      setSaveError(e.message);
     }
   }
 

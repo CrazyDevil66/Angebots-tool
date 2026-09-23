@@ -201,7 +201,12 @@ export default function KundenListe({ navigate, kunden = [], setKunden, angebote
     const aktuell = kunden.some(c => c.id === k.id)
       ? kunden.map(c => c.id === k.id ? k : c)
       : [...kunden, k];
-    await saveKunden(token, aktuell);
+    try {
+      await saveKunden(token, aktuell);
+    } catch (e) {
+      alert(`Kunde konnte nicht gespeichert werden: ${e.message}`);
+      return;
+    }
     setKunden(aktuell);
     setSelected(k);
     setDrawerMode('view');
@@ -210,7 +215,12 @@ export default function KundenListe({ navigate, kunden = [], setKunden, angebote
   async function handleDelete(k) {
     if (!confirm(`Kunden "${k.firma || k.name}" löschen? Angebote bleiben erhalten.`)) return;
     const aktuell = kunden.filter(c => c.id !== k.id);
-    await saveKunden(token, aktuell);
+    try {
+      await saveKunden(token, aktuell);
+    } catch (e) {
+      alert(`Kunde konnte nicht gelöscht werden: ${e.message}`);
+      return;
+    }
     setKunden(aktuell);
     setSelected(null);
   }

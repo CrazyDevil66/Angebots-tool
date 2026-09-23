@@ -4,6 +4,9 @@ const crypto = require('crypto');
 
 const { dataDir } = require('../paths');
 const { leseJson, schreibeJsonAtomar } = require('../lib/jsonDatei');
+const { httpFehler } = require('../lib/fehler');
+
+const ROLLEN = new Set(['admin', 'user']);
 
 const USERS_FILE = () => path.join(dataDir(), 'users.json');
 
@@ -51,7 +54,7 @@ async function createUser({ username, email = null, role = 'user' }) {
 }
 
 function pruefePasswort(password) {
-  if (!password || password.length < 8) throw new Error('Passwort muss mindestens 8 Zeichen haben');
+  if (!password || password.length < 8) throw httpFehler(400, 'Passwort muss mindestens 8 Zeichen haben');
 }
 
 async function setPassword(id, password) {
@@ -98,6 +101,11 @@ function updateUser(id, updates) {
   const all = readUsers();
   const idx = all.findIndex(u => u.id === id);
   if (idx === -1) throw new Error('Benutzer nicht gefunden');
+  if ('role' in updates) {
+    if (!ROLLEN.has(updates.role)) throw new Error('Ungültige Rolle');
+    const letzterAdmin = all[idx].role === 'admin' && all.filter(u => u.role === 'admin').length <= 1;
+    if (letzterAdmin && updates.role !== 'admin') throw new Error('Den letzten Admin kann man nicht herabstufen');
+  }
   for (const key of ['role', 'email']) {
     if (key in updates) all[idx][key] = updates[key];
   }

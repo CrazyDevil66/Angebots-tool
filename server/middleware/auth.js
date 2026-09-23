@@ -36,7 +36,7 @@ function benutzerZumToken(payload) {
   };
 }
 
-function requireAuth(req, res, next) {
+function authentifiziere(req, res, next, { passwortPflichtErlaubt }) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
   if (!token) return res.status(401).json({ error: 'Nicht authentifiziert' });
@@ -48,8 +48,20 @@ function requireAuth(req, res, next) {
   }
   const user = benutzerZumToken(payload);
   if (!user) return res.status(401).json({ error: 'Sitzung ungültig, bitte neu anmelden' });
+  if (user.mustChangePassword && !passwortPflichtErlaubt) {
+    return res.status(403).json({ error: 'Bitte zuerst das Passwort ändern' });
+  }
   req.user = user;
   next();
+}
+
+function requireAuth(req, res, next) {
+  authentifiziere(req, res, next, { passwortPflichtErlaubt: false });
+}
+
+// Nur für die Routen, die ein Benutzer mit temporärem Passwort vor dem Wechsel braucht.
+function requireAuthOhnePasswortPflicht(req, res, next) {
+  authentifiziere(req, res, next, { passwortPflichtErlaubt: true });
 }
 
 function requireAdmin(req, res, next) {
@@ -57,4 +69,4 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-module.exports = { jwtSecret, makeToken, verifyToken, benutzerZumToken, requireAuth, requireAdmin };
+module.exports = { jwtSecret, makeToken, verifyToken, benutzerZumToken, requireAuth, requireAuthOhnePasswortPflicht, requireAdmin };

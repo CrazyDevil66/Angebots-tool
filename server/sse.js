@@ -21,7 +21,9 @@ function eventsHandler(req, res) {
   try { payload = verifyToken(token); } catch {
     return res.status(401).json({ error: 'Ungültiger Token' });
   }
-  if (!benutzerZumToken(payload)) return res.status(401).json({ error: 'Sitzung ungültig, bitte neu anmelden' });
+  const user = benutzerZumToken(payload);
+  if (!user) return res.status(401).json({ error: 'Sitzung ungültig, bitte neu anmelden' });
+  if (user.mustChangePassword) return res.status(403).json({ error: 'Bitte zuerst das Passwort ändern' });
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',

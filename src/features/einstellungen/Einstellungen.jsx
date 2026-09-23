@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Building2, CheckCircle2, Settings2, AlignLeft, BookOpen, Users, Mail } from 'lucide-react';
+import { AlertCircle, Building2, CheckCircle2, Settings2, AlignLeft, BookOpen, Users, Mail } from 'lucide-react';
 import { saveFirma } from '../../api/stammdaten';
 import FirmenPreview from './FirmenPreview';
 import FirmaTab from './FirmaTab';
@@ -18,11 +18,13 @@ const TABS = [
 
 export default function Einstellungen({ token, currentUser, onLogout, firma, setFirma, setKunden, setAngebote, katalog, setKatalog }) {
   const [saved,   setSaved]   = useState(false);
+  const [speicherFehler, setSpeicherFehler] = useState(null);
   const [tab,     setTab]     = useState('firma');
   const timer     = useRef(null);
   const saveTimer = useRef(null);
 
   function triggerSaved() {
+    setSpeicherFehler(null);
     setSaved(true);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setSaved(false), 2500);
@@ -32,8 +34,12 @@ export default function Einstellungen({ token, currentUser, onLogout, firma, set
     if (!token || !firma) return;
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
-      await saveFirma(token, firma);
-      triggerSaved();
+      try {
+        await saveFirma(token, firma);
+        triggerSaved();
+      } catch (e) {
+        setSpeicherFehler(e.message);
+      }
     }, 500);
     return () => clearTimeout(saveTimer.current);
   }, [firma, token]);
@@ -70,10 +76,17 @@ export default function Einstellungen({ token, currentUser, onLogout, firma, set
               ))}
             </div>
           </div>
-          <span className={`flex items-center gap-1.5 text-xs text-emerald-600 font-medium transition-opacity duration-500 ${saved ? 'opacity-100' : 'opacity-0'}`}>
-            <CheckCircle2 size={13} />
-            Gespeichert
-          </span>
+          {speicherFehler ? (
+            <span className="flex items-center gap-1.5 text-xs text-red-600 font-medium">
+              <AlertCircle size={13} />
+              Nicht gespeichert: {speicherFehler}
+            </span>
+          ) : (
+            <span className={`flex items-center gap-1.5 text-xs text-emerald-600 font-medium transition-opacity duration-500 ${saved ? 'opacity-100' : 'opacity-0'}`}>
+              <CheckCircle2 size={13} />
+              Gespeichert
+            </span>
+          )}
         </div>
       </div>
 
@@ -98,7 +111,7 @@ export default function Einstellungen({ token, currentUser, onLogout, firma, set
             )}
             {tab === 'texte' && <TexteTab firma={firma} setFeld={set} />}
             {tab === 'katalog' && (
-              <KatalogTab token={token} katalog={katalog} setKatalog={setKatalog} onGespeichert={triggerSaved} />
+              <KatalogTab token={token} katalog={katalog} setKatalog={setKatalog} onGespeichert={triggerSaved} onFehler={setSpeicherFehler} />
             )}
             {tab === 'benutzer' && <BenutzerTab token={token} currentUser={currentUser} onLogout={onLogout} />}
             {tab === 'email' && <EmailTab token={token} />}

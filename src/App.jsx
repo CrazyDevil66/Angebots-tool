@@ -107,6 +107,11 @@ export default function App() {
       const token = getToken();
       if (token) {
         const user = await apiMe(token);
+        // Mit temporärem Passwort liefert der Server keine Daten – erst den Passwortwechsel zeigen.
+        if (user?.mustChangePassword) {
+          setAuth({ loading: false, setupRequired: false, token, user });
+          return;
+        }
         if (user) {
           await starteSitzung(token, user);
           return;

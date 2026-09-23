@@ -10,7 +10,7 @@ process.env.DATA_DIR = tmpDir;
 delete process.env.JWT_SECRET;
 
 const users = require('../stores/users');
-const { makeToken, jwtSecret, requireAuth, requireAdmin } = require('./auth');
+const { makeToken, jwtSecret, requireAuth, requireAuthOhnePasswortPflicht, requireAdmin } = require('./auth');
 
 after(() => fs.rmSync(tmpDir, { recursive: true }));
 
@@ -66,7 +66,7 @@ test('nach einem Passwort-Reset ist das alte Token ungültig, das neue gültig',
   const altesToken = makeToken(user);
   await users.setInitialPassword(user.id);
   assert.equal(pruefe(requireAuth, altesToken).status, 401);
-  assert.equal(pruefe(requireAuth, makeToken(users.findById(user.id))).weiter, true);
+  assert.equal(pruefe(requireAuthOhnePasswortPflicht, makeToken(users.findById(user.id))).weiter, true);
 });
 
 test('Tokens ohne tokenVersion bleiben für Benutzer ohne tokenVersion gültig', async () => {
@@ -74,4 +74,16 @@ test('Tokens ohne tokenVersion bleiben für Benutzer ohne tokenVersion gültig',
   const altesToken = jwt.sign({ userId: user.id, username: 'erika', role: 'user' }, jwtSecret());
   assert.equal(users.findById(user.id).tokenVersion, undefined);
   assert.equal(pruefe(requireAuth, altesToken).weiter, true);
+});
+
+test('mit temporärem Passwort sind nur die Routen für den Passwortwechsel erreichbar', async () => {
+  const user = await neuerBenutzer('frank');
+  await users.setInitialPassword(user.id);
+  const token = makeToken(users.findById(user.id));
+  const normal = pruefe(requireAuth, token);
+  assert.equal(normal.weiter, false);
+  assert.equal(normal.status, 403);
+  const wechsel = pruefe(requireAuthOhnePasswortPflicht, token);
+  assert.equal(wechsel.weiter, true);
+  assert.equal(wechsel.user.mustChangePassword, true);
 });
