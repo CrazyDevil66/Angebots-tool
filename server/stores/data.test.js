@@ -7,7 +7,7 @@ const os = require('os');
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'data-test-'));
 process.env.DATA_DIR = tmpDir;
 
-const { readData, writeData, VALID_TYPES } = require('./data');
+const { readData, writeData, speichereEintrag, loescheEintrag, VALID_TYPES } = require('./data');
 
 after(() => fs.rmSync(tmpDir, { recursive: true }));
 
@@ -66,4 +66,38 @@ test('writeData: firma darf Objekt oder null sein, aber kein Array oder Text', (
   writeData('firma', null);
   assert.throws(() => writeData('firma', []), e => e.status === 400);
   assert.throws(() => writeData('firma', 'X'), e => e.status === 400);
+});
+
+test('speichereEintrag legt an, ändert und lässt andere Einträge unberührt', () => {
+  writeData('kunden', [{ id: 'k1', name: 'Alt' }, { id: 'k2', name: 'Zwei' }]);
+  speichereEintrag('kunden', 'k1', { id: 'k1', name: 'Neu' });
+  speichereEintrag('kunden', 'k3', { name: 'Drei' });
+  assert.deepEqual(readData('kunden'), [
+    { id: 'k1', name: 'Neu' },
+    { id: 'k2', name: 'Zwei' },
+    { id: 'k3', name: 'Drei' },
+  ]);
+});
+
+test('zwei Änderungen an verschiedenen Einträgen gehen beide nicht verloren', () => {
+  writeData('katalog', [{ id: 'a', preis: 1 }, { id: 'b', preis: 2 }]);
+  // Beide Nutzer haben die Liste im Stand vor der jeweils anderen Änderung
+  speichereEintrag('katalog', 'a', { id: 'a', preis: 10 });
+  speichereEintrag('katalog', 'b', { id: 'b', preis: 20 });
+  assert.deepEqual(readData('katalog'), [{ id: 'a', preis: 10 }, { id: 'b', preis: 20 }]);
+});
+
+test('loescheEintrag entfernt nur den Eintrag und ist bei fehlendem Eintrag kein Fehler', () => {
+  writeData('kunden', [{ id: 'k1' }, { id: 'k2' }]);
+  assert.deepEqual(loescheEintrag('kunden', 'k1'), [{ id: 'k2' }]);
+  assert.deepEqual(loescheEintrag('kunden', 'k1'), [{ id: 'k2' }]);
+});
+
+test('speichereEintrag prüft Typ, ID und Eintrag', () => {
+  const status400 = e => e.status === 400;
+  assert.throws(() => speichereEintrag('firma', 'x', {}), status400);
+  assert.throws(() => speichereEintrag('kunden', 'x'.repeat(101), {}), status400);
+  assert.throws(() => speichereEintrag('kunden', 'x', []), status400);
+  assert.throws(() => speichereEintrag('kunden', 'x', null), status400);
+  assert.throws(() => speichereEintrag('kunden', 'x', { id: 'y' }), status400);
 });

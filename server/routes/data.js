@@ -36,4 +36,24 @@ router.put('/:type', pruefeTyp, nurAdminFuerFirma, (req, res) => {
   }
 });
 
+router.put('/:type/:id', (req, res) => {
+  try {
+    const liste = dataStore.speichereEintrag(req.params.type, req.params.id, req.body);
+    broadcastDataUpdate(req.params.type);
+    res.json(liste);
+  } catch (e) {
+    sendeFehler(res, e);
+  }
+});
+
+router.delete('/:type/:id', (req, res) => {
+  try {
+    const liste = dataStore.loescheEintrag(req.params.type, req.params.id);
+    broadcastDataUpdate(req.params.type);
+    res.json(liste);
+  } catch (e) {
+    sendeFehler(res, e);
+  }
+});
+
 module.exports = router;

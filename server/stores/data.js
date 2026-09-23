@@ -6,6 +6,7 @@ const { httpFehler } = require('../lib/fehler');
 
 const DATA_DIR = dataDir();
 const VALID_TYPES = new Set(['firma', 'kunden', 'katalog']);
+const LISTEN_TYPES = new Set(['kunden', 'katalog']);
 
 function dataFile(type) {
   return path.join(DATA_DIR, `${type}.json`);
@@ -38,4 +39,30 @@ function writeData(type, data) {
   fs.renameSync(tmp, dataFile(type));
 }
 
-module.exports = { readData, writeData, VALID_TYPES };
+function pruefeEintrag(type, id, eintrag) {
+  if (!LISTEN_TYPES.has(type)) throw httpFehler(400, 'Einzelne Einträge gibt es nur bei Kunden und Katalog');
+  if (typeof id !== 'string' || !id || id.length > 100) throw httpFehler(400, 'Ungültige ID');
+  if (eintrag === undefined) return;
+  if (!eintrag || typeof eintrag !== 'object' || Array.isArray(eintrag)) throw httpFehler(400, 'Ungültiger Eintrag');
+  if (eintrag.id !== undefined && eintrag.id !== id) throw httpFehler(400, 'ID im Eintrag passt nicht zur Adresse');
+}
+
+// Ändert nur diesen einen Eintrag – gleichzeitige Änderungen an anderen Einträgen bleiben erhalten.
+function speichereEintrag(type, id, eintrag) {
+  pruefeEintrag(type, id, eintrag);
+  const neu = { ...eintrag, id };
+  const liste = readData(type);
+  const vorhanden = liste.some(e => e.id === id);
+  const aktuell = vorhanden ? liste.map(e => e.id === id ? neu : e) : [...liste, neu];
+  writeData(type, aktuell);
+  return aktuell;
+}
+
+function loescheEintrag(type, id) {
+  pruefeEintrag(type, id);
+  const aktuell = readData(type).filter(e => e.id !== id);
+  writeData(type, aktuell);
+  return aktuell;
+}
+
+module.exports = { readData, writeData, speichereEintrag, loescheEintrag, VALID_TYPES };

@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import FormField, { Input } from '../components/FormField';
-import { saveKunden } from '../api/stammdaten';
+import { saveKunde, deleteKunde } from '../api/stammdaten';
 import { formatBetrag } from '../utils/format';
 import { neueId } from '../utils/id';
 
@@ -198,30 +198,24 @@ export default function KundenListe({ navigate, kunden = [], setKunden, angebote
   }
 
   async function handleSave(k) {
-    const aktuell = kunden.some(c => c.id === k.id)
-      ? kunden.map(c => c.id === k.id ? k : c)
-      : [...kunden, k];
     try {
-      await saveKunden(token, aktuell);
+      setKunden(await saveKunde(token, k));
     } catch (e) {
       alert(`Kunde konnte nicht gespeichert werden: ${e.message}`);
       return;
     }
-    setKunden(aktuell);
     setSelected(k);
     setDrawerMode('view');
   }
 
   async function handleDelete(k) {
     if (!confirm(`Kunden "${k.firma || k.name}" löschen? Angebote bleiben erhalten.`)) return;
-    const aktuell = kunden.filter(c => c.id !== k.id);
     try {
-      await saveKunden(token, aktuell);
+      setKunden(await deleteKunde(token, k.id));
     } catch (e) {
       alert(`Kunde konnte nicht gelöscht werden: ${e.message}`);
       return;
     }
-    setKunden(aktuell);
     setSelected(null);
   }
 

@@ -1,34 +1,84 @@
+import { useEffect, useRef, useState } from 'react';
 import { BookOpen, Plus, Trash2 } from 'lucide-react';
 import { Input, Select } from '../../components/FormField';
 import { einheiten } from '../../lib/defaultData';
-import { saveKatalog } from '../../api/stammdaten';
+import { saveLeistung, deleteLeistung } from '../../api/stammdaten';
 import Section from './Section';
 import { neueId } from '../../utils/id';
 
+const SPEICHER_VERZOEGERUNG_MS = 500;
+
+function ohne(objekt, schluessel) {
+  const { [schluessel]: _entfernt, ...rest } = objekt;
+  return rest;
+}
+
 export default function KatalogTab({ token, katalog, setKatalog, onGespeichert, onFehler }) {
-  async function speichere(neu) {
-    setKatalog(neu);
+  // Zeilen mit noch nicht gespeicherten Änderungen. Sie haben Vorrang vor dem Serverstand,
+  // damit ein Live-Update beim Tippen keine Eingaben überschreibt.
+  const [entwuerfe, setEntwuerfe] = useState({});
+  const timer = useRef(new Map());
+  const ausstehend = useRef(new Map());
+
+  // Beim Verlassen des Tabs noch wartende Änderungen sofort speichern statt sie zu verwerfen.
+  useEffect(() => {
+    const timerListe = timer.current;
+    const offen = ausstehend.current;
+    return () => {
+      for (const [id, leistung] of offen) {
+        clearTimeout(timerListe.get(id));
+        saveLeistung(token, leistung).catch(e => onFehler(e.message));
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- nur beim Verlassen des Tabs
+  }, []);
+
+  async function speichere(leistung) {
     try {
-      await saveKatalog(token, neu);
+      setKatalog(await saveLeistung(token, leistung));
+      // Entwurf nur verwerfen, wenn seitdem nicht weitergetippt wurde
+      setEntwuerfe(e => e[leistung.id] === leistung ? ohne(e, leistung.id) : e);
       onGespeichert();
     } catch (e) {
       onFehler(e.message);
     }
   }
 
+  function verzoegertSpeichern(leistung) {
+    clearTimeout(timer.current.get(leistung.id));
+    ausstehend.current.set(leistung.id, leistung);
+    timer.current.set(leistung.id, setTimeout(() => {
+      timer.current.delete(leistung.id);
+      ausstehend.current.delete(leistung.id);
+      speichere(leistung);
+    }, SPEICHER_VERZOEGERUNG_MS));
+  }
+
   function katalogUpdate(id, field, value) {
-    return speichere(katalog.map(item => item.id === id ? { ...item, [field]: value } : item));
+    const basis = entwuerfe[id] ?? katalog.find(item => item.id === id);
+    const neu = { ...basis, [field]: value };
+    setEntwuerfe(e => ({ ...e, [id]: neu }));
+    verzoegertSpeichern(neu);
   }
 
   function katalogAdd() {
-    return speichere([
-      ...katalog,
-      { id: neueId(), bezeichnung: '', beschreibung: '', einheit: 'Stk.', einzelpreis: 0 },
-    ]);
+    const neu = { id: neueId(), bezeichnung: '', beschreibung: '', einheit: 'Stk.', einzelpreis: 0 };
+    setKatalog(k => [...k, neu]);
+    return speichere(neu);
   }
 
-  function katalogDelete(id) {
-    return speichere(katalog.filter(item => item.id !== id));
+  async function katalogDelete(id) {
+    clearTimeout(timer.current.get(id));
+    timer.current.delete(id);
+    ausstehend.current.delete(id);
+    setEntwuerfe(e => ohne(e, id));
+    setKatalog(k => k.filter(item => item.id !== id));
+    try {
+      setKatalog(await deleteLeistung(token, id));
+      onGespeichert();
+    } catch (e) {
+      onFehler(e.message);
+    }
   }
 
   return (
@@ -48,7 +98,7 @@ export default function KatalogTab({ token, katalog, setKatalog, onGespeichert, 
             Noch keine Leistungen angelegt — klicke auf „Neue Leistung"
           </p>
         )}
-        {katalog.map(item => (
+        {katalog.map(gespeichert => entwuerfe[gespeichert.id] ?? gespeichert).map(item => (
           <div
             key={item.id}
             className="grid grid-cols-[1fr_160px_90px_110px_40px] gap-2 items-start bg-slate-50 rounded-xl p-2 hover:bg-indigo-50/30 transition-colors group"
