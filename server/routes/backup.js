@@ -15,6 +15,16 @@ router.get('/', (_req, res) => {
   }
 });
 
+// Sofortige Sicherung zusätzlich zum Zeitplan; liefert den neuen Status.
+router.post('/jetzt', (_req, res) => {
+  try {
+    const datei = backup.sichereAutomatisch();
+    res.json({ datei, status: backup.backupStatus() });
+  } catch (e) {
+    sendeFehler(res, e);
+  }
+});
+
 router.post('/restore', (req, res) => {
   try {
     const ergebnis = backup.stelleWiederHer(req.body);

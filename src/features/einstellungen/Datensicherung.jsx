@@ -5,6 +5,7 @@ import { loadFirma, loadKunden, loadKatalog } from '../../api/stammdaten';
 import { loadAngebote } from '../../api/angebote';
 import { defaultData } from '../../lib/defaultData';
 import { dateiHerunterladen } from '../../utils/download';
+import AutomatischeSicherung from './AutomatischeSicherung';
 
 function dateiLesen(datei) {
   return new Promise((resolve, reject) => {
@@ -96,6 +97,7 @@ export default function Datensicherung({ token, setFirma, setKunden, setKatalog,
           {meldung.text}
         </div>
       )}
+      <AutomatischeSicherung token={token} />
     </div>
   );
 }

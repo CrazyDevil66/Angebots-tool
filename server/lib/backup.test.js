@@ -113,3 +113,73 @@ test('stelleWiederHer: ungültige Angebots-ID bricht vor jeder Änderung ab', ()
   assert.equal(dataStore.readData('firma').name, 'Meine Firma');
   assert.equal(dataStore.readData('kunden').length, 1);
 });
+
+test('sichereAutomatisch: Export-Format mit Uhrzeit im Namen, wieder einspielbar', () => {
+  dataStore.writeData('firma', { name: 'Meine Firma' });
+  dataStore.writeData('kunden', [{ id: 'k1', firma: 'Kunde AG' }]);
+  angeboteStore.createOffer(snapshot);
+
+  const datei = backup.sichereAutomatisch(new Date(2026, 8, 23, 2, 5), 14);
+  assert.equal(datei, 'automatisch-2026-09-23-020500.json');
+  const inhalt = JSON.parse(fs.readFileSync(path.join(tmpDir, 'backups', datei), 'utf8'));
+  assert.equal(inhalt.version, 2);
+  assert.equal(inhalt.angebote.length, 1);
+
+  dataStore.writeData('kunden', []);
+  backup.stelleWiederHer(inhalt);
+  assert.deepEqual(dataStore.readData('kunden'), [{ id: 'k1', firma: 'Kunde AG' }]);
+});
+
+test('sichereAutomatisch: Sicherung ohne Firmendaten (frische Installation) ist einspielbar', () => {
+  const datei = backup.sichereAutomatisch(new Date(2026, 0, 2, 2, 0), 14);
+  const inhalt = JSON.parse(fs.readFileSync(path.join(tmpDir, 'backups', datei), 'utf8'));
+  assert.equal(inhalt.firma, null);
+  assert.doesNotThrow(() => backup.stelleWiederHer(inhalt));
+});
+
+test('sichereAutomatisch legt immer an, auch ohne Änderungen, und behält die neuesten N', () => {
+  const verzeichnis = path.join(tmpDir, 'backups');
+  fs.mkdirSync(verzeichnis, { recursive: true });
+  fs.writeFileSync(path.join(verzeichnis, 'vor-import-2026-01-01T00-00-00-000Z.json'), '{}');
+  for (let tag = 1; tag <= 5; tag++) backup.sichereAutomatisch(new Date(2026, 2, tag, 2, 0), 3);
+
+  const uebrig = fs.readdirSync(verzeichnis).sort();
+  assert.deepEqual(uebrig, [
+    'automatisch-2026-03-03-020000.json',
+    'automatisch-2026-03-04-020000.json',
+    'automatisch-2026-03-05-020000.json',
+    'vor-import-2026-01-01T00-00-00-000Z.json',
+  ]);
+  assert.deepEqual(backup.backupStatus(), { letzte: new Date(2026, 2, 5, 2, 0).toISOString(), anzahl: 3 });
+});
+
+test('sichereWennFaellig: nach Zeitplan aus config.json, holt verpasste Termine nach', () => {
+  fs.writeFileSync(path.join(tmpDir, 'config.json'), JSON.stringify({
+    backup: { haeufigkeit: 'taeglich', uhrzeit: '02:00', wochentag: 1, behalten: 14 },
+  }));
+  // Noch keine Sicherung: sofort fällig (Termin gestern 02:00 verpasst)
+  assert.equal(backup.sichereWennFaellig(new Date(2026, 8, 23, 1, 0)), 'automatisch-2026-09-23-010000.json');
+  assert.equal(backup.sichereWennFaellig(new Date(2026, 8, 23, 1, 59)), null);
+  assert.equal(backup.sichereWennFaellig(new Date(2026, 8, 23, 2, 0)), 'automatisch-2026-09-23-020000.json');
+  assert.equal(backup.sichereWennFaellig(new Date(2026, 8, 23, 14, 0)), null);
+  // Server lief um 02:00 nicht – beim Start um 07:30 wird nachgeholt
+  assert.equal(backup.sichereWennFaellig(new Date(2026, 8, 24, 7, 30)), 'automatisch-2026-09-24-073000.json');
+});
+
+test('sichereWennFaellig: bei „aus“ keine Sicherung', () => {
+  fs.writeFileSync(path.join(tmpDir, 'config.json'), JSON.stringify({ backup: { haeufigkeit: 'aus' } }));
+  assert.equal(backup.sichereWennFaellig(new Date(2026, 8, 23, 3, 0)), null);
+  assert.deepEqual(backup.backupStatus(), { letzte: null, anzahl: 0 });
+});
+
+test('Sicherungen in derselben Minute oder Sekunde überschreiben sich nicht', () => {
+  backup.sichereAutomatisch(new Date(2026, 8, 23, 15, 10, 5), 14);
+  const gleicheSekunde = new Date(2026, 8, 23, 15, 10, 40);
+  assert.equal(backup.sichereAutomatisch(gleicheSekunde, 14), 'automatisch-2026-09-23-151040.json');
+  assert.equal(backup.sichereAutomatisch(gleicheSekunde, 14), 'automatisch-2026-09-23-151040-2.json');
+  assert.equal(backup.sichereAutomatisch(gleicheSekunde, 14), 'automatisch-2026-09-23-151040-3.json');
+  assert.equal(backup.backupStatus().anzahl, 4);
+  // Aufräumen löscht in der richtigen Reihenfolge: die älteste zuerst, -3 bleibt als neueste
+  backup.raeumeAutomatischeAuf(1);
+  assert.deepEqual(fs.readdirSync(path.join(tmpDir, 'backups')), ['automatisch-2026-09-23-151040-3.json']);
+});

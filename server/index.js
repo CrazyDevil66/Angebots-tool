@@ -6,6 +6,7 @@ const { jwtSecret } = require('./middleware/auth');
 const { eventsHandler, broadcastDataUpdate } = require('./sse');
 const angeboteStore = require('./stores/angebote');
 const users = require('./stores/users');
+const backup = require('./lib/backup');
 const { trustProxyAus } = require('./lib/trustProxy');
 const { sicherheitsHeader } = require('./lib/sicherheitsHeader');
 
@@ -34,6 +35,19 @@ function abgelaufeneMarkieren() {
 abgelaufeneMarkieren();
 setInterval(abgelaufeneMarkieren, STUENDLICH);
 
+// Minütlich prüfen, damit die eingestellte Uhrzeit eingehalten wird; verpasste Termine werden nachgeholt.
+const MINUETLICH = 60 * 1000;
+function automatischSichern() {
+  try {
+    const datei = backup.sichereWennFaellig();
+    if (datei) console.log(`Automatische Sicherung angelegt: backups/${datei}`);
+  } catch (e) {
+    console.error('Automatische Sicherung fehlgeschlagen:', e);
+  }
+}
+automatischSichern();
+setInterval(automatischSichern, MINUETLICH);
+
 const app = express();
 app.set('trust proxy', trustProxyAus(process.env.TRUST_PROXY));
 app.disable('x-powered-by');
@@ -43,6 +57,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use('/api', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/config/smtp', require('./routes/smtp'));
+app.use('/api/config/backup', require('./routes/backupEinstellungen'));
 app.get('/api/events', eventsHandler);
 app.use('/api/data', require('./routes/data'));
 app.use('/api/angebote', require('./routes/angebote'));

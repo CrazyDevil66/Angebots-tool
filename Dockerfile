@@ -9,6 +9,8 @@ RUN npm run build
 # Stage 2: Produktions-Image
 FROM node:22-alpine
 WORKDIR /app
+# Standard für Backup-Zeitpunkte und Ablaufdatum; Unraid überschreibt TZ mit der Server-Zeitzone
+ENV TZ=Europe/Berlin
 COPY server/package*.json ./server/
 RUN cd server && npm ci --omit=dev
 COPY --from=frontend-builder /app/dist ./dist

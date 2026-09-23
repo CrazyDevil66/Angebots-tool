@@ -46,6 +46,7 @@ docker run -d \
 | `PORT` | Interner Port des Servers | `3000` |
 | `JWT_SECRET` | Geheimer Schlüssel für JWT-Token. Wird automatisch generiert wenn leer. | *(automatisch)* |
 | `BASE_URL` | Externe URL der App, z.B. `https://angebote.meinserver.de` | *(optional)* |
+| `TZ` | Zeitzone für automatische Sicherungen und den Ablauf von Angeboten | `Europe/Berlin` |
 | `TRUST_PROXY` | Nur hinter Reverse-Proxy/Cloudflare setzen: Anzahl der Proxys vor dem Container (z.B. `1`) oder deren Adressen (z.B. `172.17.0.0/16`). Ohne Angabe sieht die Login-Sperre bei Zugriff über einen Proxy alle Nutzer als eine IP. | *(aus)* |
 
 ## Datenspeicherung
@@ -56,7 +57,7 @@ Alle Daten werden im Container-Pfad `/app/data` gespeichert:
 - `config.json` – App-Konfiguration, SMTP-Einstellungen und JWT-Secret
 - `firma.json`, `kunden.json`, `katalog.json` – Stammdaten
 - `angebote/` – ein JSON pro Angebot plus `index.json`
-- `backups/` – automatische Sicherung des alten Stands vor jedem Backup-Import
+- `backups/` – automatische Sicherung (`automatisch-JJJJ-MM-TT-HHMMSS.json`; Häufigkeit, Uhrzeit und Anzahl unter **Einstellungen → Firmendaten → Datensicherung**, Standard: täglich 02:00, 14 behalten; verpasste Termine werden nach dem Start nachgeholt) und Sicherung des alten Stands vor jedem Backup-Import (`vor-import-*.json`, wird nie automatisch gelöscht). Die automatischen Sicherungen haben das Export-Format und lassen sich über **Importieren** wiederherstellen. `users.json` und `config.json` sind nicht enthalten – dafür den ganzen Appdata-Ordner sichern.
 
 Über **Einstellungen → Datensicherung** (nur Admins) lassen sich alle Daten als JSON exportieren und wieder importieren. Ein Import ersetzt den kompletten Datenbestand.
 
