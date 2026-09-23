@@ -22,7 +22,7 @@ function pruefeBackup(backup) {
   if (!backup || typeof backup !== 'object' || Array.isArray(backup)) {
     throw httpFehler(400, 'Ungültige Backup-Datei');
   }
-  if (typeof backup.firma !== 'object') {
+  if (typeof backup.firma !== 'object' || Array.isArray(backup.firma)) {
     throw httpFehler(400, 'Backup-Datei unvollständig: „firma“ fehlt');
   }
   for (const feld of ['kunden', 'katalog', 'angebote']) {

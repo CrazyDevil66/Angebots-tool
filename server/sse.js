@@ -2,6 +2,11 @@ const { verifyToken } = require('./middleware/auth');
 
 const clients = new Set();
 
+// Proxys wie Cloudflare trennen Verbindungen ohne Datenverkehr nach ca. 100 s.
+// Der Kommentar-Heartbeat hält sie offen; retry verkürzt die Wiederverbindung.
+const HEARTBEAT_MS = 25000;
+const RETRY_MS = 5000;
+
 function broadcastDataUpdate(dataType) {
   const msg = `data: ${JSON.stringify({ dataType })}\n\n`;
   for (const client of clients) {
@@ -21,9 +26,15 @@ function eventsHandler(req, res) {
     'Connection': 'keep-alive',
     'X-Accel-Buffering': 'no',
   });
-  res.write(':\n\n');
+  res.write(`retry: ${RETRY_MS}\n\n`);
   clients.add(res);
-  req.on('close', () => clients.delete(res));
+  const heartbeat = setInterval(() => {
+    try { res.write(':\n\n'); } catch { clearInterval(heartbeat); clients.delete(res); }
+  }, HEARTBEAT_MS);
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    clients.delete(res);
+  });
 }
 
 module.exports = { broadcastDataUpdate, eventsHandler };

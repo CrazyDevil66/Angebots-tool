@@ -51,3 +51,19 @@ test('VALID_TYPES enthält 3 Typen (firma, kunden, katalog)', () => {
   assert.ok(VALID_TYPES.has('katalog'));
   assert.equal(VALID_TYPES.size, 3);
 });
+
+test('writeData: falscher Datentyp wird mit 400 abgelehnt, bestehende Datei bleibt', () => {
+  writeData('kunden', [{ id: 'k1' }]);
+  for (const falsch of [{ id: 'k1' }, 'text', 42, null]) {
+    assert.throws(() => writeData('kunden', falsch), e => e.status === 400, JSON.stringify(falsch));
+  }
+  assert.throws(() => writeData('katalog', {}), e => e.status === 400);
+  assert.deepEqual(readData('kunden'), [{ id: 'k1' }]);
+});
+
+test('writeData: firma darf Objekt oder null sein, aber kein Array oder Text', () => {
+  writeData('firma', { name: 'X' });
+  writeData('firma', null);
+  assert.throws(() => writeData('firma', []), e => e.status === 400);
+  assert.throws(() => writeData('firma', 'X'), e => e.status === 400);
+});

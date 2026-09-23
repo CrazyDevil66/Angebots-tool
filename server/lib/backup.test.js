@@ -101,6 +101,7 @@ test('stelleWiederHer: unvollständige Backups und doppelte IDs werden abgelehnt
   const basis = { firma: {}, kunden: [], katalog: [], angebote: [] };
   assert.throws(() => backup.stelleWiederHer(null), e => e.status === 400);
   assert.throws(() => backup.stelleWiederHer({ ...basis, kunden: undefined }), e => e.status === 400);
+  assert.throws(() => backup.stelleWiederHer({ ...basis, firma: [] }), e => e.status === 400);
   const doppelt = { ...basis, angebote: [{ id: 'a', snapshot }, { id: 'a', snapshot }] };
   assert.throws(() => backup.stelleWiederHer(doppelt), e => e.status === 400 && /doppelt/.test(e.message));
 });

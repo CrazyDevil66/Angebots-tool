@@ -10,6 +10,7 @@ import LoginScreen from './features/auth/LoginScreen';
 import SetupScreen from './features/auth/SetupScreen';
 import InviteScreen from './features/auth/InviteScreen';
 import ChangePasswordModal from './features/auth/ChangePasswordModal';
+import LadeFehler from './features/auth/LadeFehler';
 import { loadFirma, loadKunden, loadKatalog } from './api/stammdaten';
 import { loadAngebote, setAngebotStatus } from './api/angebote';
 import { apiSetupRequired, apiMe, getToken, saveToken, clearToken } from './api/auth';
@@ -35,6 +36,7 @@ export default function App() {
   const [kunden,   setKunden]   = useState([]);
   const [angebote, setAngebote] = useState([]);
   const [katalog,  setKatalog]  = useState([]);
+  const [ladeFehler, setLadeFehler] = useState(null);
 
   const eventSourceRef = useRef(null);
 
@@ -66,13 +68,32 @@ export default function App() {
     const es = new EventSource(`/api/events?token=${encodeURIComponent(token)}`);
     es.onmessage = async (e) => {
       const { dataType } = JSON.parse(e.data);
-      if (dataType === 'firma')    setFirma(await loadFirma(token));
-      if (dataType === 'kunden')   setKunden(await loadKunden(token));
-      if (dataType === 'angebote') setAngebote(await loadAngebote(token));
-      if (dataType === 'katalog')  setKatalog(await loadKatalog(token));
+      try {
+        if (dataType === 'firma')    setFirma(await loadFirma(token));
+        if (dataType === 'kunden')   setKunden(await loadKunden(token));
+        if (dataType === 'angebote') setAngebote(await loadAngebote(token));
+        if (dataType === 'katalog')  setKatalog(await loadKatalog(token));
+      } catch (err) {
+        console.error(`Live-Aktualisierung von ${dataType} fehlgeschlagen:`, err);
+      }
     };
-    es.onerror = () => {};
+    // Der Browser verbindet sich selbst neu; der Hinweis hilft bei der Fehlersuche.
+    es.onerror = () => { console.warn('Live-Verbindung unterbrochen – Browser verbindet neu'); };
     eventSourceRef.current = es;
+  }
+
+  // Lädt alle Daten und startet die Live-Verbindung. Schlägt das Laden fehl,
+  // zeigt die App eine Fehlermeldung mit „Erneut versuchen“ statt eines Endlos-Spinners.
+  async function starteSitzung(token, user) {
+    setLadeFehler(null);
+    try {
+      await loadAllData(token);
+      openSSE(token);
+    } catch (e) {
+      console.error('Datenladen fehlgeschlagen:', e);
+      setLadeFehler(e.message || 'Unbekannter Fehler');
+    }
+    setAuth({ loading: false, setupRequired: false, token, user });
   }
 
   useEffect(() => {
@@ -87,9 +108,7 @@ export default function App() {
       if (token) {
         const user = await apiMe(token);
         if (user) {
-          await loadAllData(token);
-          openSSE(token);
-          setAuth({ loading: false, setupRequired: false, token, user });
+          await starteSitzung(token, user);
           return;
         }
         clearToken();
@@ -97,21 +116,23 @@ export default function App() {
       setAuth({ loading: false, setupRequired: false, token: null, user: null });
     })();
     return () => { if (eventSourceRef.current) eventSourceRef.current.close(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- nur einmal beim Öffnen der App
   }, []);
 
   async function handleAuthComplete(token) {
     const payload = parseJwt(token);
     saveToken(token);
-    if (!payload?.mustChangePassword) {
-      await loadAllData(token);
-      openSSE(token);
+    if (payload?.mustChangePassword) {
+      setAuth({ loading: false, setupRequired: false, token, user: payload });
+      return;
     }
-    setAuth({ loading: false, setupRequired: false, token, user: payload });
+    await starteSitzung(token, payload);
   }
 
   function handleLogout() {
     if (eventSourceRef.current) { eventSourceRef.current.close(); eventSourceRef.current = null; }
     clearToken();
+    setLadeFehler(null);
     setFirma(null);
     setKunden([]);
     setAngebote([]);
@@ -140,6 +161,9 @@ export default function App() {
   if (auth.setupRequired) return <SetupScreen onComplete={handleAuthComplete} />;
   if (!auth.token) return <LoginScreen onComplete={handleAuthComplete} />;
   if (auth.user?.mustChangePassword) return <ChangePasswordModal token={auth.token} onComplete={handleAuthComplete} />;
+  if (ladeFehler) {
+    return <LadeFehler meldung={ladeFehler} onErneut={() => starteSitzung(auth.token, auth.user)} onAbmelden={handleLogout} />;
+  }
 
   const sharedProps = {
     navigate,
