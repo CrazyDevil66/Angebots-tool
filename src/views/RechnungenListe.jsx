@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Search, Download, Pencil, ChevronDown } from 'lucide-react';
 import { loadAngebotFull } from '../api/angebote';
 import { formatBetrag } from '../utils/format';
-import { generatePDF } from '../pdf/generatePDF';
+import { generatePDF } from '../pdf/ladePDF';
 import { rechnungsDokument } from '../utils/angebote';
 import { getStatus } from '../lib/statusConfig';
 
@@ -58,7 +58,10 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma 
       const full = await loadAngebotFull(token, a.id);
       const snapshot = { ...full.snapshot, firma };
       await generatePDF(rechnungsDokument(snapshot, a), 'rechnung');
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      alert(`PDF konnte nicht erstellt werden: ${e.message}`);
+    }
     finally { setPdfLoading(null); }
   }
 

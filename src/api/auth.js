@@ -1,9 +1,12 @@
+import { pruefeSitzung } from './client';
+
 const BASE = '';
 
 async function post(url, body, token) {
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(BASE + url, { method: 'POST', headers, body: JSON.stringify(body) });
+  if (token) pruefeSitzung(res);
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Fehler');
   return data;
@@ -13,6 +16,7 @@ async function get(url, token) {
   const headers = {};
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(BASE + url, { headers });
+  if (token) pruefeSitzung(res);
   if (!res.ok) return null;
   return res.json();
 }
@@ -22,6 +26,7 @@ async function del(url, token) {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   });
+  pruefeSitzung(res);
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Fehler');
   return data;
@@ -33,6 +38,7 @@ async function patch(url, body, token) {
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify(body),
   });
+  pruefeSitzung(res);
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Fehler');
   return data;

@@ -14,6 +14,7 @@ import LadeFehler from './features/auth/LadeFehler';
 import { loadFirma, loadKunden, loadKatalog } from './api/stammdaten';
 import { loadAngebote, setAngebotStatus } from './api/angebote';
 import { apiSetupRequired, apiMe, getToken, saveToken, clearToken } from './api/auth';
+import { SITZUNG_ABGELAUFEN } from './api/client';
 import { autoMarkAbgelaufen } from './utils/angebote';
 import { defaultData } from './lib/defaultData';
 
@@ -37,6 +38,7 @@ export default function App() {
   const [angebote, setAngebote] = useState([]);
   const [katalog,  setKatalog]  = useState([]);
   const [ladeFehler, setLadeFehler] = useState(null);
+  const [loginHinweis, setLoginHinweis] = useState(null);
 
   const eventSourceRef = useRef(null);
 
@@ -97,6 +99,16 @@ export default function App() {
   }
 
   useEffect(() => {
+    function sitzungAbgelaufen() {
+      if (!getToken()) return;
+      handleLogout();
+      setLoginHinweis('Deine Sitzung ist abgelaufen, bitte melde dich neu an.');
+    }
+    window.addEventListener(SITZUNG_ABGELAUFEN, sitzungAbgelaufen);
+    return () => window.removeEventListener(SITZUNG_ABGELAUFEN, sitzungAbgelaufen);
+  }, []);
+
+  useEffect(() => {
     if (istEinladungsLink()) return;
     (async () => {
       const setupRequired = await apiSetupRequired();
@@ -125,6 +137,7 @@ export default function App() {
   }, []);
 
   async function handleAuthComplete(token) {
+    setLoginHinweis(null);
     const payload = parseJwt(token);
     saveToken(token);
     if (payload?.mustChangePassword) {
@@ -164,7 +177,7 @@ export default function App() {
   const inviteMatch = window.location.pathname.match(/^\/invite\/(.+)$/);
   if (inviteMatch) return <InviteScreen inviteToken={inviteMatch[1]} onComplete={handleAuthComplete} />;
   if (auth.setupRequired) return <SetupScreen onComplete={handleAuthComplete} />;
-  if (!auth.token) return <LoginScreen onComplete={handleAuthComplete} />;
+  if (!auth.token) return <LoginScreen onComplete={handleAuthComplete} hinweis={loginHinweis} />;
   if (auth.user?.mustChangePassword) return <ChangePasswordModal token={auth.token} onComplete={handleAuthComplete} />;
   if (ladeFehler) {
     return <LadeFehler meldung={ladeFehler} onErneut={() => starteSitzung(auth.token, auth.user)} onAbmelden={handleLogout} />;

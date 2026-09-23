@@ -3,7 +3,7 @@ import { Plus, Search, Download, Pencil, Trash2, ChevronDown } from 'lucide-reac
 import StatusDropdown from '../components/StatusDropdown';
 import { deleteAngebot, setAngebotStatus, loadAngebotFull } from '../api/angebote';
 import { formatBetrag } from '../utils/format';
-import { generatePDF } from '../pdf/generatePDF';
+import { generatePDF } from '../pdf/ladePDF';
 import { rechnungsDokument } from '../utils/angebote';
 import { STATUS_LIST } from '../lib/statusConfig';
 
@@ -71,7 +71,10 @@ export default function AngeboteListe({ navigate, angebote = [], setAngebote, to
       } else {
         await generatePDF(snapshot);
       }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      alert(`PDF konnte nicht erstellt werden: ${e.message}`);
+    }
     finally { setPdfLoading(null); }
   }
 

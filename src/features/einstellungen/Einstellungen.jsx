@@ -22,6 +22,9 @@ export default function Einstellungen({ token, currentUser, onLogout, firma, set
   const [tab,     setTab]     = useState('firma');
   const timer     = useRef(null);
   const saveTimer = useRef(null);
+  // Zuletzt gespeicherter bzw. vom Server geladener Stand. Ohne diesen Vergleich löst das
+  // Neuladen per Live-Update erneut ein Speichern aus – eine Endlosschleife.
+  const letzterStand = useRef(null);
 
   function triggerSaved() {
     setSpeicherFehler(null);
@@ -32,10 +35,14 @@ export default function Einstellungen({ token, currentUser, onLogout, firma, set
 
   useEffect(() => {
     if (!token || !firma) return;
+    const stand = JSON.stringify(firma);
+    if (letzterStand.current === null) letzterStand.current = stand;
+    if (stand === letzterStand.current) return;
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       try {
         await saveFirma(token, firma);
+        letzterStand.current = stand;
         triggerSaved();
       } catch (e) {
         setSpeicherFehler(e.message);

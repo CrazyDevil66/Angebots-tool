@@ -3,31 +3,39 @@ import {
   saveAngebot, updateAngebot, setAngebotStatus,
   setAngebotRechnung, setMahnung, setBezahlt,
 } from '../../api/angebote';
-import { generatePDF } from '../../pdf/generatePDF';
+import { generatePDF } from '../../pdf/ladePDF';
 import { rechnungsDokument } from '../../utils/angebote';
 import { mailEntwurfLink } from './mailEntwurf';
 
 // Server-Aktionen und PDF-Erzeugung des Editors.
-export default function useAngebotAktionen({ token, data, meta, setMeta, aktivesId, setAktivesId, setAngebote }) {
+export default function useAngebotAktionen({ token, data, set, meta, setMeta, aktivesId, setAktivesId, setAngebote }) {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [savedHint, setSavedHint] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [rechnungFehler, setRechnungFehler] = useState(null);
+  const [hinweis, setHinweis] = useState(null);
   const savedTimer = useRef(null);
 
-  // Legt das Angebot beim ersten Bedarf an und liefert dessen ID.
+  // Legt das Angebot beim ersten Bedarf an und liefert dessen ID sowie die Daten mit der
+  // tatsächlich vergebenen Nummer – der Server ersetzt eine inzwischen vergebene Nummer.
   async function sicherGespeichert() {
-    if (aktivesId) return aktivesId;
+    if (aktivesId) return { id: aktivesId, dokument: data };
     const { eintrag, updated } = await saveAngebot(token, data);
     setAktivesId(eintrag.id);
     setAngebote(updated);
-    return eintrag.id;
+    if (eintrag.angebotNr === data.angebotNr) return { id: eintrag.id, dokument: data };
+    set('angebotNr', eintrag.angebotNr);
+    setHinweis(`Die Angebotsnummer ${data.angebotNr || '(leer)'} war bereits vergeben – das Angebot wurde als ${eintrag.angebotNr} gespeichert.`);
+    return { id: eintrag.id, dokument: { ...data, angebotNr: eintrag.angebotNr } };
   }
 
   async function pdfErzeugen(...args) {
     setPdfLoading(true);
     try { await generatePDF(...args); }
-    catch (e) { console.error(e); }
+    catch (e) {
+      console.error(e);
+      alert(`PDF konnte nicht erstellt werden: ${e.message}`);
+    }
     finally { setPdfLoading(false); }
   }
 
@@ -74,8 +82,11 @@ export default function useAngebotAktionen({ token, data, meta, setMeta, aktives
   // beiErfolg wird aufgerufen, sobald die Rechnung gespeichert ist – vor der PDF-Erzeugung.
   async function rechnungErstellen({ rechnungsNr, datum, betreff, einleitung, hinweise }, beiErfolg) {
     setRechnungFehler(null);
+    let dokument;
     try {
-      const id = await sicherGespeichert();
+      const gespeichert = await sicherGespeichert();
+      const id = gespeichert.id;
+      dokument = gespeichert.dokument;
       await setAngebotStatus(token, id, 'angenommen');
       setMeta(m => ({ ...m, status: 'angenommen' }));
       setAngebote(await setAngebotRechnung(token, id, rechnungsNr, datum, betreff, einleitung, hinweise));
@@ -95,7 +106,7 @@ export default function useAngebotAktionen({ token, data, meta, setMeta, aktives
       rechnungsHinweise: hinweise,
     };
     setMeta(neueMeta);
-    await pdfErzeugen(rechnungsDokument(data, neueMeta), 'rechnung');
+    await pdfErzeugen(rechnungsDokument(dokument, neueMeta), 'rechnung');
   }
 
   async function mahnungErstellen({ stufe, mahnungNr, datum, frist, mahngebuehr, text }) {
@@ -107,9 +118,11 @@ export default function useAngebotAktionen({ token, data, meta, setMeta, aktives
       ...meta.mahnGebuehren.filter(g => g.stufe !== stufe),
       { stufe, betrag: Number(mahngebuehr || 0) },
     ];
+    let dokument;
     try {
-      const id = await sicherGespeichert();
-      setAngebote(await setMahnung(token, id, stufe, mahnungNr, datum, neueGebuehren));
+      const gespeichert = await sicherGespeichert();
+      dokument = gespeichert.dokument;
+      setAngebote(await setMahnung(token, gespeichert.id, stufe, mahnungNr, datum, neueGebuehren));
     } catch (e) {
       setSaveError(e.message);
       return;
@@ -117,7 +130,7 @@ export default function useAngebotAktionen({ token, data, meta, setMeta, aktives
     setMeta(m => ({ ...m, status: 'gemahnt', mahnStufe: stufe, mahnGebuehren: neueGebuehren }));
 
     const mahnungData = { stufe, mahnungNr, datum, frist, mahngebuehr, text, vorherigeGebuehren };
-    await pdfErzeugen({ ...data, rechnungsNr: meta.rechnungsNr, rechnungsDatum: meta.rechnungsDatum }, 'mahnung', mahnungData);
+    await pdfErzeugen({ ...dokument, rechnungsNr: meta.rechnungsNr, rechnungsDatum: meta.rechnungsDatum }, 'mahnung', mahnungData);
   }
 
   async function alsBezahltMarkieren() {
@@ -134,7 +147,7 @@ export default function useAngebotAktionen({ token, data, meta, setMeta, aktives
   }
 
   return {
-    pdfLoading, savedHint, saveError, setSaveError, rechnungFehler, setRechnungFehler,
+    pdfLoading, savedHint, saveError, setSaveError, rechnungFehler, setRechnungFehler, hinweis, setHinweis,
     speichern, statusAendern, angebotPDF, rechnungPDF, perMailSenden,
     rechnungErstellen, mahnungErstellen, alsBezahltMarkieren,
   };

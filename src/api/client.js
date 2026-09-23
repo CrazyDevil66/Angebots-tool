@@ -1,3 +1,10 @@
+export const SITZUNG_ABGELAUFEN = 'sitzung-abgelaufen';
+
+// Ein 401 bei einer Anfrage mit Token heißt: Sitzung abgelaufen oder widerrufen. App.jsx meldet dann ab.
+export function pruefeSitzung(res) {
+  if (res.status === 401) window.dispatchEvent(new Event(SITZUNG_ABGELAUFEN));
+}
+
 async function fehlerAusAntwort(res, beschreibung) {
   const body = await res.json().catch(() => null);
   return new Error(body?.error || `${beschreibung} fehlgeschlagen (${res.status})`);
@@ -11,6 +18,7 @@ async function anfrage(token, method, endpoint, body) {
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+  pruefeSitzung(res);
   if (!res.ok) throw await fehlerAusAntwort(res, `${method} ${endpoint}`);
   return res.json();
 }

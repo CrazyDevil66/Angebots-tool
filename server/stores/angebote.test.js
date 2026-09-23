@@ -54,7 +54,7 @@ test('readOffer: gibt null für unbekannte ID', () => {
 
 test('updateOffer: Snapshot und Metadaten werden aktualisiert', () => {
   const { entry } = store.createOffer(sampleData);
-  const updated = { ...sampleData, betreff: 'Geändertes Angebot' };
+  const updated = { ...sampleData, angebotNr: entry.angebotNr, betreff: 'Geändertes Angebot' };
   const index = store.updateOffer(entry.id, updated, 'gesendet');
   const full = store.readOffer(entry.id);
   assert.equal(full.betreff, 'Geändertes Angebot');
@@ -65,7 +65,7 @@ test('updateOffer: Snapshot und Metadaten werden aktualisiert', () => {
 
 test('updateOffer: Logo bleibt nach Update rausgestripped', () => {
   const { entry } = store.createOffer(sampleData);
-  store.updateOffer(entry.id, { ...sampleData, firma: { ...sampleData.firma, logo: 'data:image/png;base64,BBBB' } }, 'entwurf');
+  store.updateOffer(entry.id, { ...sampleData, angebotNr: entry.angebotNr, firma: { ...sampleData.firma, logo: 'data:image/png;base64,BBBB' } }, 'entwurf');
   const full = store.readOffer(entry.id);
   assert.equal(full.snapshot.firma.logo, undefined);
 });
@@ -161,7 +161,7 @@ test('createOffer: Netto/Brutto berücksichtigen den Aufschlag', () => {
 
 test('updateOffer: Netto/Brutto berücksichtigen den Aufschlag', () => {
   const { entry } = store.createOffer(sampleData);
-  const index = store.updateOffer(entry.id, mitAufschlag, 'entwurf');
+  const index = store.updateOffer(entry.id, { ...mitAufschlag, angebotNr: entry.angebotNr }, 'entwurf');
   assert.equal(index.find(e => e.id === entry.id).netto, 300);
 });
 
@@ -212,4 +212,39 @@ test('Angebots-IDs mit Pfadbestandteilen werden abgelehnt (kein Zugriff außerha
     assert.throws(() => store.patchOffer(id, { status: 'x' }), e => e.status === 400);
   }
   assert.equal(fs.readFileSync(path.join(tmpDir, 'users.json'), 'utf8'), '[{"geheim":true}]');
+});
+
+test('createOffer: vergebene oder leere Angebotsnummer wird durch die nächste freie ersetzt', () => {
+  const jahr = new Date().getFullYear();
+  const erstes = store.createOffer({ ...sampleData, angebotNr: `A-${jahr}-900` }).entry;
+  assert.equal(erstes.angebotNr, `A-${jahr}-900`);
+  const doppelt = store.createOffer({ ...sampleData, angebotNr: `A-${jahr}-900` }).entry;
+  assert.equal(doppelt.angebotNr, `A-${jahr}-901`);
+  assert.equal(store.readOffer(doppelt.id).snapshot.angebotNr, `A-${jahr}-901`);
+  const leer = store.createOffer({ ...sampleData, angebotNr: '  ' }).entry;
+  assert.equal(leer.angebotNr, `A-${jahr}-902`);
+});
+
+test('updateOffer: Ändern auf eine vergebene Angebotsnummer gibt 409', () => {
+  const a = store.createOffer({ ...sampleData, angebotNr: 'X-1' }).entry;
+  const b = store.createOffer({ ...sampleData, angebotNr: 'X-2' }).entry;
+  assert.throws(
+    () => store.updateOffer(b.id, { ...sampleData, angebotNr: 'X-1' }, 'entwurf'),
+    e => e.status === 409 && /X-1 ist bereits vergeben/.test(e.message),
+  );
+  assert.equal(store.readOffer(b.id).angebotNr, 'X-2');
+  assert.equal(a.angebotNr, 'X-1');
+});
+
+test('updateOffer: unveränderte doppelte Nummer blockiert das Speichern nicht', () => {
+  const a = store.createOffer({ ...sampleData, angebotNr: 'Y-1' }).entry;
+  const b = store.createOffer({ ...sampleData, angebotNr: 'Y-2' }).entry;
+  // Doppel aus der Zeit vor der Prüfung nachstellen
+  const alt = store.readOffer(b.id);
+  const index = store.readIndex().map(e => e.id === b.id ? { ...e, angebotNr: 'Y-1' } : e);
+  fs.writeFileSync(path.join(tmpDir, 'angebote', `${b.id}.json`), JSON.stringify({ ...alt, angebotNr: 'Y-1' }));
+  fs.writeFileSync(path.join(tmpDir, 'angebote', 'index.json'), JSON.stringify(index));
+  store.updateOffer(b.id, { ...sampleData, angebotNr: 'Y-1', betreff: 'geändert' }, 'entwurf');
+  assert.equal(store.readOffer(b.id).betreff, 'geändert');
+  assert.equal(a.angebotNr, 'Y-1');
 });

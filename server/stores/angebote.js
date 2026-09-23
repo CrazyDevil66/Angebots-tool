@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { berechneSummen } = require('../../shared/berechnung.js');
+const { nextAngebotNr } = require('../../shared/nummern.js');
 const { dataDir } = require('../paths');
 const { httpFehler } = require('../lib/fehler');
 
@@ -105,12 +106,28 @@ function buildMetadata(id, data, status, extra = {}) {
   };
 }
 
-function createOffer(data) {
+// Die Nummer schlägt der Browser vor. Ist sie leer oder inzwischen vergeben (zwei Nutzer legen
+// gleichzeitig ein Angebot an), vergibt der Server die nächste freie.
+function mitFreierAngebotNr(data, index) {
+  const nr = data.angebotNr;
+  if (typeof nr === 'string' && nr.trim() && !index.some(e => e.angebotNr === nr)) return data;
+  return { ...data, angebotNr: nextAngebotNr(index) };
+}
+
+function pruefeAngebotNrFrei(id, angebotNr) {
+  const belegt = readIndex().find(e => e.id !== id && e.angebotNr === angebotNr);
+  if (!belegt) return;
+  throw httpFehler(409, `Angebotsnummer ${angebotNr} ist bereits vergeben`);
+}
+
+function createOffer(eingabe) {
+  const bisher = readIndex();
+  const data = mitFreierAngebotNr(eingabe, bisher);
   const id = crypto.randomUUID();
   const snapshot = stripLogo(data);
   const meta = buildMetadata(id, data, 'entwurf');
   writeOffer(id, { ...meta, snapshot });
-  const index = [meta, ...readIndex()];
+  const index = [meta, ...bisher];
   writeIndex(index);
   return { entry: meta, index };
 }
@@ -118,6 +135,8 @@ function createOffer(data) {
 function updateOffer(id, data, status) {
   const existing = readOffer(id);
   if (!existing) throw httpFehler(404, `Angebot ${id} nicht gefunden`);
+  // Nur bei geänderter Nummer prüfen – bereits vorhandene Doppel sollen das Speichern nicht blockieren.
+  if (data.angebotNr !== existing.angebotNr) pruefeAngebotNrFrei(id, data.angebotNr);
   const snapshot = stripLogo(data);
   const meta = buildMetadata(id, data, status, {
     savedAt:             existing.savedAt,

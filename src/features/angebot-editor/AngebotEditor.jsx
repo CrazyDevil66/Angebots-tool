@@ -47,6 +47,12 @@ export default function AngebotEditor({ navigate, params = {}, firma, kunden = [
           <button onClick={() => aktionen.setSaveError(null)} className="ml-4 hover:opacity-70">✕</button>
         </div>
       )}
+      {aktionen.hinweis && (
+        <div className="sticky top-0 z-50 bg-amber-500 text-white text-sm font-medium px-8 py-2 flex items-center justify-between">
+          <span>{aktionen.hinweis}</span>
+          <button onClick={() => aktionen.setHinweis(null)} className="ml-4 hover:opacity-70">✕</button>
+        </div>
+      )}
 
       <EditorTopbar
         titel={data.angebotNr || 'Neues Angebot'}

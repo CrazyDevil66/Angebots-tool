@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FileText } from 'lucide-react';
 import { apiLogin, saveToken } from '../../api/auth';
 
-export default function LoginScreen({ onComplete }) {
+export default function LoginScreen({ onComplete, hinweis }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -42,6 +42,12 @@ export default function LoginScreen({ onComplete }) {
 
           <h1 className="text-lg font-bold text-white mb-1">Anmelden</h1>
           <p className="text-slate-400 text-sm mb-6">Bitte melde dich mit deinen Zugangsdaten an.</p>
+
+          {hinweis && !error && (
+            <div className="bg-amber-500/10 border border-amber-500/25 rounded-lg px-3 py-2 text-amber-300 text-xs mb-4">
+              {hinweis}
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2 text-red-300 text-xs mb-4">
