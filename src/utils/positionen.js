@@ -1,15 +1,17 @@
+import { neueId } from './id.js';
+
 // Hilfsfunktionen für die Angebotspositionen. Die Reihenfolge im Array ist
 // die Reihenfolge in Vorschau und PDF.
 
 export function neuePosition() {
-  return { id: crypto.randomUUID(), bezeichnung: '', beschreibung: '', menge: 1, einheit: 'Stk.', einzelpreis: 0, aufschlag: 0 };
+  return { id: neueId(), bezeichnung: '', beschreibung: '', menge: 1, einheit: 'Stk.', einzelpreis: 0, aufschlag: 0 };
 }
 
 // Stabile IDs, damit React die Zeilen beim Umsortieren korrekt zuordnet.
 // Ältere Angebote haben noch keine – sie bekommen sie beim Öffnen.
 export function mitPositionsIds(positionen) {
   if (positionen.every(p => p.id)) return positionen;
-  return positionen.map(p => (p.id ? p : { ...p, id: crypto.randomUUID() }));
+  return positionen.map(p => (p.id ? p : { ...p, id: neueId() }));
 }
 
 export function verschiebePosition(positionen, von, nach) {

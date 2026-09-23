@@ -3,6 +3,7 @@ import { Input, Select } from '../../components/FormField';
 import { einheiten } from '../../lib/defaultData';
 import { saveKatalog } from '../../api/stammdaten';
 import Section from './Section';
+import { neueId } from '../../utils/id';
 
 export default function KatalogTab({ token, katalog, setKatalog, onGespeichert }) {
   async function speichere(neu) {
@@ -18,7 +19,7 @@ export default function KatalogTab({ token, katalog, setKatalog, onGespeichert }
   function katalogAdd() {
     return speichere([
       ...katalog,
-      { id: crypto.randomUUID(), bezeichnung: '', beschreibung: '', einheit: 'Stk.', einzelpreis: 0 },
+      { id: neueId(), bezeichnung: '', beschreibung: '', einheit: 'Stk.', einzelpreis: 0 },
     ]);
   }
 

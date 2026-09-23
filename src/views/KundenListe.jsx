@@ -6,6 +6,7 @@ import StatusBadge from '../components/StatusBadge';
 import FormField, { Input } from '../components/FormField';
 import { saveKunden } from '../api/stammdaten';
 import { formatBetrag } from '../utils/format';
+import { neueId } from '../utils/id';
 
 const leerKunde = { id: null, anrede: '', firma: '', name: '', strasse: '', plz: '', ort: '', email: '', telefon: '' };
 
@@ -64,7 +65,7 @@ function KundeForm({ initial, onSave, onCancel }) {
           Abbrechen
         </button>
         <button
-          onClick={() => onSave({ ...k, id: k.id || crypto.randomUUID(), createdAt: k.createdAt || new Date().toISOString() })}
+          onClick={() => onSave({ ...k, id: k.id || neueId(), createdAt: k.createdAt || new Date().toISOString() })}
           disabled={!valid}
           className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-40 transition-colors"
         >
