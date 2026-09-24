@@ -29,7 +29,7 @@ const SORTIER_WERTE = {
 
 const SPALTEN = [
   { label: 'Rechnungsnr.', feld: 'rechnung' },
-  { label: 'Angebotsnr.', feld: 'angebot' },
+  { label: 'Angebotsnr.', feld: 'angebot', className: 'hidden lg:table-cell' },
   { label: 'Kunde', feld: 'kunde' },
   { label: 'Betreff' },
   { label: 'Datum', feld: 'datum' },
@@ -57,6 +57,46 @@ function OffenSeit({ rechnung }) {
   const farbe = tage > 30 ? 'text-red-600 font-semibold' : tage > 14 ? 'text-amber-600 font-medium' : 'text-slate-500';
   const text = tage <= 0 ? 'heute' : tage === 1 ? '1 Tag' : `${tage} Tage`;
   return <span className={farbe}>{text}</span>;
+}
+
+function RechnungStatus({ status }) {
+  const s = status === 'angenommen' ? OFFEN_STIL : getStatus(status);
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold border ${s.bg} ${s.text} ${s.border}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+      {s.label}
+    </span>
+  );
+}
+
+function RechnungKarte({ rechnung: a, onOeffnen, onPDF, pdfLaedt }) {
+  const betreff = a.rechnungsBetreff || a.betreff;
+  return (
+    <li onClick={onOeffnen} className="p-4 flex flex-col gap-1 cursor-pointer active:bg-slate-50">
+      <div className="flex items-baseline justify-between gap-3">
+        <div className="min-w-0">
+          <span className="text-sm font-semibold text-emerald-600">{a.rechnungsNr}</span>
+          <span className="ml-2 text-xs text-indigo-600 font-medium">{a.angebotNr}</span>
+        </div>
+        <span className="text-sm font-semibold text-slate-800 whitespace-nowrap">{formatBetrag(a.brutto)} €</span>
+      </div>
+      <div className="text-sm text-slate-700 truncate">{a.kundeDisplay || '—'}</div>
+      <div className="text-sm text-slate-500 truncate">{betreff || <span className="italic text-slate-300">—</span>}</div>
+      <div className="flex items-center gap-2 mt-1 text-xs" onClick={nichtWeiterreichen}>
+        <span className="text-slate-400">{formatDatum(a.rechnungsDatum || a.datum) || '—'}</span>
+        <span className="mr-auto"><OffenSeit rechnung={a} /></span>
+        <RechnungStatus status={a.status} />
+        <button
+          onClick={onPDF}
+          disabled={pdfLaedt}
+          className="p-2.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-40"
+          aria-label="Rechnung PDF"
+        >
+          <Download size={16} />
+        </button>
+      </div>
+    </li>
+  );
 }
 
 export default function RechnungenListe({ navigate, angebote = [], token, firma, params = {} }) {
@@ -112,11 +152,9 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma,
     finally { setPdfLoading(null); }
   }
 
-  const cfg = s => getStatus(s);
-
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 md:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Rechnungen</h1>
           <p className="text-slate-500 mt-1 text-sm">{rechnungen.length} Rechnungen gesamt</p>
@@ -125,8 +163,8 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma,
 
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         {/* Filter */}
-        <div className="flex items-center gap-3 p-4 border-b border-slate-100">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-wrap items-center gap-3 p-4 border-b border-slate-100">
+          <div className="relative w-full sm:w-auto sm:flex-1 sm:max-w-sm">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
             <input
               className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
@@ -135,9 +173,9 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma,
               onChange={e => setSuche(e.target.value)}
             />
           </div>
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <select
-              className="pl-3 pr-8 py-2 rounded-lg border border-slate-200 text-sm bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all appearance-none"
+              className="w-full sm:w-auto pl-3 pr-8 py-2 rounded-lg border border-slate-200 text-sm bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all appearance-none"
               value={kundeFilter}
               onChange={e => setKundeFilter(e.target.value)}
             >
@@ -149,7 +187,7 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma,
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-slate-100 px-4 bg-slate-50/50">
+        <div className="flex border-b border-slate-100 px-4 bg-slate-50/50 overflow-x-auto">
           {TABS.map(tab => (
             <button
               key={tab.id}
@@ -175,7 +213,19 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma,
             <p className="font-medium text-slate-500">Keine Rechnungen gefunden</p>
           </div>
         ) : (
-          <table className="w-full">
+          <>
+          <ul className="md:hidden divide-y divide-slate-100">
+            {sortiert.map(a => (
+              <RechnungKarte
+                key={a.id}
+                rechnung={a}
+                onOeffnen={() => navigate('angebot-editor', { angebotId: a.id })}
+                onPDF={() => handlePDF(a)}
+                pdfLaedt={pdfLoading === a.id}
+              />
+            ))}
+          </ul>
+          <table className="w-full hidden md:table">
             <thead>
               <tr className="border-b border-slate-100">
                 {SPALTEN.map((spalte, i) => (
@@ -190,7 +240,6 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma,
             </thead>
             <tbody className="divide-y divide-slate-50">
               {sortiert.map(a => {
-                const s = a.status === 'angenommen' ? OFFEN_STIL : cfg(a.status);
                 const betreff = a.rechnungsBetreff || a.betreff;
                 return (
                   <tr
@@ -201,7 +250,7 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma,
                     <td className="px-4 py-3.5 whitespace-nowrap">
                       <span className="text-sm font-semibold text-emerald-600">{a.rechnungsNr}</span>
                     </td>
-                    <td className="px-4 py-3.5 whitespace-nowrap">
+                    <td className="px-4 py-3.5 whitespace-nowrap hidden lg:table-cell">
                       <span className="text-sm font-medium text-indigo-600 group-hover:text-indigo-700">{a.angebotNr}</span>
                     </td>
                     <td className="px-4 py-3.5 text-sm text-slate-700 whitespace-nowrap">{a.kundeDisplay || '—'}</td>
@@ -218,10 +267,7 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma,
                       {formatBetrag(a.brutto)} €
                     </td>
                     <td className="px-4 py-3.5">
-                      <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold border ${s.bg} ${s.text} ${s.border}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-                        {s.label}
-                      </span>
+                      <RechnungStatus status={a.status} />
                     </td>
                     <td className="px-4 py-3.5" onClick={nichtWeiterreichen}>
                       <div className="flex items-center gap-1">
@@ -247,6 +293,7 @@ export default function RechnungenListe({ navigate, angebote = [], token, firma,
               })}
             </tbody>
           </table>
+          </>
         )}
       </div>
     </div>

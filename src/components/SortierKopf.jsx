@@ -1,8 +1,8 @@
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 
 // Tabellenkopf, der per Klick sortiert. Ohne feld ist die Spalte nicht sortierbar.
-export default function SortierKopf({ label, feld, sortierung, onSortieren, rechts = false }) {
-  const klassen = `px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50 ${rechts ? 'text-right' : 'text-left'}`;
+export default function SortierKopf({ label, feld, sortierung, onSortieren, rechts = false, className = '' }) {
+  const klassen = `px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50 ${rechts ? 'text-right' : 'text-left'} ${className}`;
   if (!feld) return <th className={klassen}>{label}</th>;
   const aktiv = sortierung?.feld === feld;
   const Symbol = !aktiv ? ArrowUpDown : sortierung.richtung === 'auf' ? ArrowUp : ArrowDown;
