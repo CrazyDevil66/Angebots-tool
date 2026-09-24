@@ -58,13 +58,13 @@ export default function AngebotEditor({
   return (
     <div className="min-h-full bg-gradient-to-br from-slate-50 to-indigo-50/20">
       {aktionen.saveError && (
-        <div className="sticky top-0 z-50 bg-red-500 text-white text-sm font-medium px-8 py-2 flex items-center justify-between">
+        <div className="sticky top-0 z-50 bg-red-500 text-white text-sm font-medium px-4 md:px-8 py-2 flex items-center justify-between">
           <span>Fehler beim Speichern: {aktionen.saveError}</span>
           <button onClick={() => aktionen.setSaveError(null)} className="ml-4 hover:opacity-70">✕</button>
         </div>
       )}
       {aktionen.hinweis && (
-        <div className="sticky top-0 z-50 bg-amber-500 text-white text-sm font-medium px-8 py-2 flex items-center justify-between">
+        <div className="sticky top-0 z-50 bg-amber-500 text-white text-sm font-medium px-4 md:px-8 py-2 flex items-center justify-between">
           <span>{aktionen.hinweis}</span>
           <button onClick={() => aktionen.setHinweis(null)} className="ml-4 hover:opacity-70">✕</button>
         </div>
@@ -92,9 +92,9 @@ export default function AngebotEditor({
         onAnsicht={setAnsicht}
       />
 
-      <div className="max-w-7xl mx-auto px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(360px,42%)] gap-6">
-          <div className="flex flex-col gap-5">
+          <div className={`${ansicht === 'vorschau' ? 'hidden lg:flex' : 'flex'} flex-col gap-5`}>
             <AngebotInfos data={data} set={set} setDatum={formular.setDatum} />
             <KundenDaten
               kunde={data.kunde}
@@ -116,7 +116,7 @@ export default function AngebotEditor({
             <FirmendatenInfo firma={data.firma} onEinstellungen={() => navigate('einstellungen')} />
           </div>
 
-          <div><PreviewPanel data={data} /></div>
+          <div className={ansicht === 'bearbeiten' ? 'hidden lg:block' : ''}><PreviewPanel data={data} /></div>
         </div>
       </div>
 

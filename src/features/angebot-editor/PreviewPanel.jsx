@@ -96,7 +96,7 @@ export default function PreviewPanel({ data }) {
 
   return (
     <div
-      className="rounded-2xl shadow-sm border border-slate-100 overflow-hidden sticky"
+      className="rounded-2xl shadow-sm border border-slate-100 overflow-hidden lg:sticky"
       style={{ top: '80px', backgroundColor: '#fff' }}
     >
       {/* Panel-Titel */}
@@ -109,8 +109,8 @@ export default function PreviewPanel({ data }) {
       </div>
 
       {/* Seiten — scrollbar */}
-      <div ref={huelleRef} className="overflow-y-auto overflow-x-hidden" style={{ maxHeight: 'calc(100vh - 260px)' }}>
-        <div style={{ width: SEITENBREITE, zoom: skala }}>
+      <div ref={huelleRef} className="overflow-y-auto overflow-x-hidden lg:max-h-[calc(100vh-260px)]">
+        <div className="mx-auto" style={{ width: SEITENBREITE, zoom: skala }}>
         {pages.map((pagePositionen, pageIdx) => {
           const isFirst  = pageIdx === 0;
           const isLast   = pageIdx === totalPages - 1;
