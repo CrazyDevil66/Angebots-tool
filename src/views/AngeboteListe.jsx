@@ -35,6 +35,43 @@ const SPALTEN = [
 // Klicks auf Status-Menü und Aktionen sollen nicht zusätzlich die Zeile öffnen
 const nichtWeiterreichen = e => e.stopPropagation();
 
+function AngebotKarte({ angebot: a, onOeffnen, onStatus, onPDF, pdfLaedt, onLoeschen }) {
+  return (
+    <li onClick={onOeffnen} className="p-4 flex flex-col gap-1 cursor-pointer active:bg-slate-50">
+      <div className="flex items-baseline justify-between gap-3">
+        <div className="min-w-0">
+          <span className="text-sm font-semibold text-indigo-600">{a.angebotNr}</span>
+          {a.rechnungsNr && <span className="ml-2 text-xs text-emerald-600 font-medium">{a.rechnungsNr}</span>}
+        </div>
+        <span className="text-sm font-semibold text-slate-800 whitespace-nowrap">{formatBetrag(a.brutto)} €</span>
+      </div>
+      <div className="text-sm text-slate-700 truncate">{a.kundeDisplay || '—'}</div>
+      <div className="text-sm text-slate-500 truncate">
+        {a.betreff || <span className="italic text-slate-300">Kein Betreff</span>}
+      </div>
+      <div className="flex items-center gap-1 mt-1" onClick={nichtWeiterreichen}>
+        <span className="text-xs text-slate-400 mr-auto">{formatDatum(a.datum) || '—'}</span>
+        <StatusDropdown status={a.status || 'entwurf'} onChange={onStatus} rechts />
+        <button
+          onClick={onPDF}
+          disabled={pdfLaedt}
+          className="p-2.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-40"
+          aria-label={a.rechnungsNr ? 'Rechnung PDF' : 'Angebot PDF'}
+        >
+          <Download size={16} />
+        </button>
+        <button
+          onClick={onLoeschen}
+          className="p-2.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+          aria-label="Löschen"
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
+    </li>
+  );
+}
+
 export default function AngeboteListe({ navigate, angebote = [], setAngebote, token, firma, params = {} }) {
   const [suche, setSuche] = useState('');
   const [kundeFilter, setKundeFilter] = useState('alle');
@@ -105,9 +142,9 @@ export default function AngeboteListe({ navigate, angebote = [], setAngebote, to
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Angebote</h1>
           <p className="text-slate-500 mt-1 text-sm">{angebote.length} Angebote gespeichert</p>
@@ -123,8 +160,8 @@ export default function AngeboteListe({ navigate, angebote = [], setAngebote, to
 
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         {/* Filter-Leiste */}
-        <div className="flex items-center gap-3 p-4 border-b border-slate-100">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-wrap items-center gap-3 p-4 border-b border-slate-100">
+          <div className="relative w-full sm:w-auto sm:flex-1 sm:max-w-sm">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
             <input
               className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
@@ -133,9 +170,9 @@ export default function AngeboteListe({ navigate, angebote = [], setAngebote, to
               onChange={e => setSuche(e.target.value)}
             />
           </div>
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <select
-              className="pl-3 pr-8 py-2 rounded-lg border border-slate-200 text-sm bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all appearance-none"
+              className="w-full sm:w-auto pl-3 pr-8 py-2 rounded-lg border border-slate-200 text-sm bg-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all appearance-none"
               value={kundeFilter}
               onChange={e => setKundeFilter(e.target.value)}
             >
@@ -173,7 +210,21 @@ export default function AngeboteListe({ navigate, angebote = [], setAngebote, to
             <p className="font-medium text-slate-500">Keine Angebote gefunden</p>
           </div>
         ) : (
-          <table className="w-full">
+          <>
+          <ul className="md:hidden divide-y divide-slate-100">
+            {sortiert.map(a => (
+              <AngebotKarte
+                key={a.id}
+                angebot={a}
+                onOeffnen={() => navigate('angebot-editor', { angebotId: a.id })}
+                onStatus={s => handleStatusChange(a.id, s)}
+                onPDF={() => handlePDF(a)}
+                pdfLaedt={pdfLoading === a.id}
+                onLoeschen={() => handleDelete(a.id)}
+              />
+            ))}
+          </ul>
+          <table className="w-full hidden md:table">
             <thead>
               <tr className="border-b border-slate-100">
                 {SPALTEN.map((spalte, i) => (
@@ -244,6 +295,7 @@ export default function AngeboteListe({ navigate, angebote = [], setAngebote, to
               ))}
             </tbody>
           </table>
+          </>
         )}
       </div>
     </div>

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { STATUS_LIST, getStatus } from '../lib/statusConfig';
 
-export default function StatusDropdown({ status, onChange, disabled = false }) {
+export default function StatusDropdown({ status, onChange, disabled = false, rechts = false }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const cfg = getStatus(status);
@@ -30,7 +30,7 @@ export default function StatusDropdown({ status, onChange, disabled = false }) {
       </button>
 
       {open && (
-        <div className="absolute top-full mt-1.5 left-0 z-50 bg-white rounded-xl shadow-xl border border-slate-100 py-1 min-w-[160px]">
+        <div className={`absolute top-full mt-1.5 ${rechts ? 'right-0' : 'left-0'} z-50 bg-white rounded-xl shadow-xl border border-slate-100 py-1 min-w-[160px]`}>
           {STATUS_LIST.map(s => (
             <button
               key={s.value}
