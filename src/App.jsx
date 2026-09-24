@@ -231,7 +231,7 @@ export default function App() {
         <span className="font-bold text-white text-sm tracking-tight">AngebotsTool</span>
       </header>
       {menuOffen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setMenuOffen(false)} />
+        <div className="lg:hidden fixed inset-0 z-50 bg-black/40" onClick={() => setMenuOffen(false)} />
       )}
       <Sidebar
         currentView={nav.view}

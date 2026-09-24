@@ -158,7 +158,7 @@ export default function AngeboteListe({ navigate, angebote = [], setAngebote, to
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200 md:overflow-hidden">
         {/* Filter-Leiste */}
         <div className="flex flex-wrap items-center gap-3 p-4 border-b border-slate-100">
           <div className="relative w-full sm:w-auto sm:flex-1 sm:max-w-sm">
