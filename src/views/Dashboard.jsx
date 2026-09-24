@@ -192,10 +192,10 @@ export default function Dashboard({ navigate, angebote = [] }) {
 
       {/* Topbar */}
       <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
-        <div className="px-8 h-14 flex items-center justify-between">
+        <div className="px-4 md:px-8 h-14 flex items-center justify-between gap-3">
           <div>
             <span className="text-base font-bold text-slate-800">Dashboard</span>
-            <span className="text-xs text-slate-400 ml-3">{heute}</span>
+            <span className="hidden sm:inline text-xs text-slate-400 ml-3">{heute}</span>
           </div>
           <button
             onClick={() => navigate('angebot-editor')}
@@ -207,10 +207,10 @@ export default function Dashboard({ navigate, angebote = [] }) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-8 py-6 flex flex-col gap-6">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6 flex flex-col gap-4 md:gap-6">
 
         {/* ── KPI-Kacheln ── */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <KpiCard
             label="Bezahlter Umsatz"
             value={`${formatBetrag(stats.bezahltSum)} €`}
@@ -317,7 +317,29 @@ export default function Dashboard({ navigate, angebote = [] }) {
               </button>
             </div>
           ) : (
-            <table className="w-full">
+            <>
+            <ul className="md:hidden divide-y divide-slate-100">
+              {letzte.map(a => (
+                <li
+                  key={a.id}
+                  onClick={() => navigate('angebot-editor', { angebotId: a.id })}
+                  className="px-4 py-3 flex flex-col gap-1 cursor-pointer active:bg-slate-50"
+                >
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-sm font-semibold text-indigo-600">
+                      {a.angebotNr}
+                      {a.rechnungsNr && <span className="ml-2 text-xs font-normal text-slate-400">{a.rechnungsNr}</span>}
+                    </span>
+                    <span className="text-sm font-semibold text-slate-800 tabular-nums whitespace-nowrap">{formatBetrag(a.brutto)} €</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-slate-600 truncate">{a.kundeDisplay || '—'}</span>
+                    <StatusBadge status={a.status || 'entwurf'} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <table className="w-full hidden md:table">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
                   {['Nummer', 'Kunde', 'Betreff', 'Geändert', 'Betrag', 'Status'].map((h, i) => (
@@ -364,6 +386,7 @@ export default function Dashboard({ navigate, angebote = [] }) {
                 ))}
               </tbody>
             </table>
+            </>
           )}
         </div>
 
