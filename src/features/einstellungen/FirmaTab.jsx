@@ -62,8 +62,8 @@ export default function FirmaTab({ firma, setFeld, istAdmin, token, setFirma, se
 
       {/* Firmendaten */}
       <Section icon={Building2} title="Firmendaten">
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Firmenname" className="col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <FormField label="Firmenname" className="sm:col-span-2">
             <Input value={firma.name} onChange={e => set('name', e.target.value)} placeholder="Muster GmbH" />
           </FormField>
           <FormField label="Straße">
@@ -94,11 +94,11 @@ export default function FirmaTab({ firma, setFeld, istAdmin, token, setFirma, se
 
       {/* Bankverbindung */}
       <Section icon={CreditCard} title="Bankverbindung">
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Kontoinhaber" className="col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <FormField label="Kontoinhaber" className="sm:col-span-2">
             <Input value={firma.kontoinhaber ?? ''} onChange={e => set('kontoinhaber', e.target.value)} placeholder="Max Mustermann" />
           </FormField>
-          <FormField label="IBAN" className="col-span-2">
+          <FormField label="IBAN" className="sm:col-span-2">
             <Input value={firma.iban ?? ''} onChange={e => set('iban', e.target.value.toUpperCase())} placeholder="DE12 3456 7890 1234 5678 90" />
           </FormField>
           <FormField label="BIC">

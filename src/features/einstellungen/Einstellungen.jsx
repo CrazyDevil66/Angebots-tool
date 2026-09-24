@@ -54,25 +54,26 @@ export default function Einstellungen({ token, currentUser, onLogout, firma, set
   }, [firma, token, istAdmin]);
 
   const set = (field, val) => setFirma(prev => ({ ...prev, [field]: val }));
+  const mitVorschau = !['katalog', 'benutzer', 'email'].includes(tab);
 
   return (
     <div className="min-h-full bg-gradient-to-br from-slate-50 to-indigo-50/20">
 
       {/* Topbar */}
       <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
-        <div className="px-8 h-14 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <Settings2 size={18} className="text-indigo-500" />
-              <h1 className="text-base font-bold text-slate-800">Einstellungen</h1>
-            </div>
-            {/* Tabs */}
-            <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+        <div className="px-4 md:px-8 py-2 lg:py-0 lg:h-14 flex flex-wrap lg:flex-nowrap items-center gap-x-4 gap-y-2">
+          <div className="flex items-center gap-3">
+            <Settings2 size={18} className="text-indigo-500" />
+            <h1 className="text-base font-bold text-slate-800">Einstellungen</h1>
+          </div>
+          {/* Tabs */}
+          <div className="order-last lg:order-none w-full lg:w-auto overflow-x-auto">
+            <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1 w-max">
               {TABS.filter(t => !t.adminOnly || istAdmin).map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
                   onClick={() => setTab(id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md whitespace-nowrap transition-all ${
                     tab === id
                       ? 'bg-white text-slate-800 shadow-sm'
                       : 'text-slate-500 hover:text-slate-700'
@@ -84,23 +85,25 @@ export default function Einstellungen({ token, currentUser, onLogout, firma, set
               ))}
             </div>
           </div>
-          {speicherFehler ? (
-            <span className="flex items-center gap-1.5 text-xs text-red-600 font-medium">
-              <AlertCircle size={13} />
-              Nicht gespeichert: {speicherFehler}
-            </span>
-          ) : (
-            <span className={`flex items-center gap-1.5 text-xs text-emerald-600 font-medium transition-opacity duration-500 ${saved ? 'opacity-100' : 'opacity-0'}`}>
-              <CheckCircle2 size={13} />
-              Gespeichert
-            </span>
-          )}
+          <div className="ml-auto">
+            {speicherFehler ? (
+              <span className="flex items-center gap-1.5 text-xs text-red-600 font-medium">
+                <AlertCircle size={13} />
+                Nicht gespeichert: {speicherFehler}
+              </span>
+            ) : (
+              <span className={`flex items-center gap-1.5 text-xs text-emerald-600 font-medium transition-opacity duration-500 ${saved ? 'opacity-100' : 'opacity-0'}`}>
+                <CheckCircle2 size={13} />
+                Gespeichert
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Zwei-Spalten-Layout */}
-      <div className="max-w-6xl mx-auto px-8 py-6">
-        <div className="grid gap-6" style={{ gridTemplateColumns: (['katalog', 'benutzer', 'email'].includes(tab)) ? 'minmax(0,1fr)' : 'minmax(0,1fr) 340px' }}>
+      <div className="max-w-6xl mx-auto px-4 md:px-8 py-4 md:py-6">
+        <div className={`grid gap-6 grid-cols-1 ${mitVorschau ? 'lg:grid-cols-[minmax(0,1fr)_340px]' : ''}`}>
 
           {/* ── Linke Spalte: Einstellungen ── */}
           <div className="flex flex-col gap-4">
@@ -135,7 +138,7 @@ export default function Einstellungen({ token, currentUser, onLogout, firma, set
           </div>
 
           {/* ── Rechte Spalte: Live-Vorschau ── */}
-          {!['katalog', 'benutzer', 'email'].includes(tab) && <FirmenPreview firma={firma} fokus={tab} />}
+          {mitVorschau && <FirmenPreview firma={firma} fokus={tab} />}
 
         </div>
       </div>

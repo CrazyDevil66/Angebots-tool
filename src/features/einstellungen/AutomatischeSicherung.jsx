@@ -58,7 +58,7 @@ export default function AutomatischeSicherung({ token }) {
       <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Automatische Sicherung</div>
       {werte && (
         <>
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <FormField label="Häufigkeit">
               <Select value={werte.haeufigkeit} onChange={e => setze('haeufigkeit', e.target.value)}>
                 <option value="aus">Aus</option>

@@ -5,7 +5,7 @@ import Section from './Section';
 export default function TexteTab({ firma, setFeld: set }) {
   return (
     <Section icon={FileText} title="Textvorlagen">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Einleitungstext — Angebot">
           <Textarea
             value={firma.einleitungAngebot ?? ''}

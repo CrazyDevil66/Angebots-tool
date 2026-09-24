@@ -38,8 +38,8 @@ export default function EmailTab({ token }) {
 
   return (
     <Section icon={Mail} title="SMTP-Konfiguration">
-      <div className="grid grid-cols-2 gap-3">
-        <FormField label="SMTP-Host" className="col-span-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <FormField label="SMTP-Host" className="sm:col-span-2">
           <Input value={smtp.host} onChange={e => setSmtp(p => ({ ...p, host: e.target.value }))} placeholder="smtp.gmail.com" />
         </FormField>
         <FormField label="Port">
@@ -54,7 +54,7 @@ export default function EmailTab({ token }) {
         <FormField label="Absender-Adresse">
           <Input value={smtp.from} onChange={e => setSmtp(p => ({ ...p, from: e.target.value }))} placeholder="noreply@firma.de" />
         </FormField>
-        <FormField label="App-URL (für Einladungslinks)" className="col-span-2">
+        <FormField label="App-URL (für Einladungslinks)" className="sm:col-span-2">
           <Input value={smtp.baseUrl} onChange={e => setSmtp(p => ({ ...p, baseUrl: e.target.value }))} placeholder="https://meinserver.de" />
         </FormField>
       </div>
