@@ -24,10 +24,10 @@ export default function ChangePasswordModal({ token, onComplete }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+    <div className="min-h-dvh bg-[#0f172a] flex items-center justify-center px-4">
       <form
         onSubmit={handleSubmit}
-        className="bg-slate-800 border border-slate-700 rounded-2xl p-10 w-80 shadow-2xl"
+        className="bg-slate-800 border border-slate-700 rounded-2xl p-10 w-80 max-w-full shadow-2xl"
       >
         <div className="text-3xl mb-4">🔐</div>
         <h1 className="text-lg font-bold text-white mb-1">Passwort ändern</h1>

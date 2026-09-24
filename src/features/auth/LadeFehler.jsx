@@ -2,8 +2,8 @@ import { AlertTriangle } from 'lucide-react';
 
 export default function LadeFehler({ meldung, onErneut, onAbmelden }) {
   return (
-    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-10 w-96 shadow-2xl">
+    <div className="min-h-dvh bg-[#0f172a] flex items-center justify-center px-4">
+      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-10 w-96 max-w-full shadow-2xl">
         <div className="flex items-center gap-3 mb-4">
           <AlertTriangle size={20} className="text-amber-400" />
           <h1 className="text-lg font-bold text-white">Daten konnten nicht geladen werden</h1>

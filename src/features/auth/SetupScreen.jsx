@@ -27,12 +27,12 @@ export default function SetupScreen({ onComplete }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+    <div className="min-h-dvh bg-[#0f172a] flex items-center justify-center px-4">
       <div className="relative">
         <div className="absolute -top-20 -left-20 w-72 h-72 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
         <form
           onSubmit={handleSubmit}
-          className="relative bg-slate-800 border border-slate-700 rounded-2xl p-10 w-80 shadow-2xl"
+          className="relative bg-slate-800 border border-slate-700 rounded-2xl p-10 w-80 max-w-full shadow-2xl"
         >
           <div className="flex items-center gap-3 mb-8">
             <div className="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-900/50">
