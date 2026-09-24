@@ -18,7 +18,7 @@ function KundeForm({ initial, onSave, onCancel }) {
 
   return (
     <div className="flex flex-col gap-4 p-4">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <FormField label="Firma">
           <Input value={k.firma} onChange={e => set('firma', e.target.value)} placeholder="Kunden GmbH" autoFocus />
         </FormField>
@@ -178,6 +178,25 @@ function KundeDrawer({ kunde, angebote, onEdit, onDelete, onClose, onNeuesAngebo
   );
 }
 
+function KundeKarte({ kunde: k, umsatz, aktiv, onOeffnen }) {
+  return (
+    <li
+      onClick={onOeffnen}
+      className={`p-4 flex items-center gap-3 cursor-pointer ${aktiv ? 'bg-indigo-50' : 'active:bg-slate-50'}`}
+    >
+      <div className="min-w-0 flex-1">
+        <div className="font-semibold text-slate-800 text-sm truncate">{k.firma || k.name}</div>
+        {k.firma && k.name && <div className="text-xs text-slate-400 truncate">{k.name}</div>}
+        <div className="text-xs text-slate-500 mt-0.5">{k.ort ? `${k.plz} ${k.ort}` : '—'}</div>
+      </div>
+      <span className="text-sm font-semibold text-slate-800 whitespace-nowrap">
+        {umsatz > 0 ? `${formatBetrag(umsatz)} €` : '—'}
+      </span>
+      <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
+    </li>
+  );
+}
+
 export default function KundenListe({ navigate, kunden = [], setKunden, angebote = [], token }) {
   const [suche, setSuche] = useState('');
   const [selected, setSelected] = useState(null);
@@ -221,10 +240,10 @@ export default function KundenListe({ navigate, kunden = [], setKunden, angebote
   }
 
   return (
-    <div className="flex h-full min-h-screen">
+    <div className="flex min-h-full">
       {/* Hauptbereich */}
-      <div className={`flex-1 p-8 transition-all ${selected ? 'mr-0' : ''}`}>
-        <div className="flex items-center justify-between mb-6">
+      <div className={`flex-1 min-w-0 p-4 md:p-8 transition-all ${selected ? 'mr-0' : ''}`}>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Kunden</h1>
             <p className="text-slate-500 mt-1 text-sm">{kunden.length} Kunden im Adressbuch</p>
@@ -239,7 +258,7 @@ export default function KundenListe({ navigate, kunden = [], setKunden, angebote
         </div>
 
         {/* Suche */}
-        <div className="relative mb-4 max-w-sm">
+        <div className="relative mb-4 sm:max-w-sm">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
           <input
             className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all bg-white"
@@ -259,7 +278,19 @@ export default function KundenListe({ navigate, kunden = [], setKunden, angebote
               </p>
             </div>
           ) : (
-            <table className="w-full">
+            <>
+            <ul className="md:hidden divide-y divide-slate-100">
+              {gefiltert.map(k => (
+                <KundeKarte
+                  key={k.id}
+                  kunde={k}
+                  umsatz={kundeStats(k).umsatz}
+                  aktiv={selected?.id === k.id}
+                  onOeffnen={() => { setSelected(k); setDrawerMode('view'); }}
+                />
+              ))}
+            </ul>
+            <table className="w-full hidden md:table">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
                   {['Name / Firma', 'Ort', 'E-Mail', 'Angebote', 'Umsatz', ''].map((h, i) => (
@@ -298,13 +329,14 @@ export default function KundenListe({ navigate, kunden = [], setKunden, angebote
                 })}
               </tbody>
             </table>
+            </>
           )}
         </div>
       </div>
 
       {/* Drawer */}
       {(selected || drawerMode === 'new') && (
-        <div className="w-96 border-l border-slate-200 bg-white flex-shrink-0 flex flex-col shadow-xl">
+        <div className="fixed inset-0 z-40 lg:static lg:inset-auto lg:z-auto lg:w-96 border-l border-slate-200 bg-white flex-shrink-0 flex flex-col shadow-xl">
           {drawerMode === 'view' && selected ? (
             <KundeDrawer
               kunde={selected}
