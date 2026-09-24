@@ -28,9 +28,18 @@ function NavItem({ label, icon: Icon, active, count, onClick }) {
   );
 }
 
-export default function Sidebar({ currentView, onNavigate, counts = {}, onLogout }) {
+export default function Sidebar({ currentView, onNavigate, counts = {}, onLogout, offen = false, onSchliessen }) {
+  function waehle(view) {
+    onSchliessen?.();
+    onNavigate(view);
+  }
+
   return (
-    <aside className="w-56 bg-[#0f172a] flex flex-col flex-shrink-0 h-screen border-r border-slate-800">
+    <aside
+      className={`w-56 bg-[#0f172a] flex flex-col flex-shrink-0 h-dvh border-r border-slate-800
+        fixed inset-y-0 left-0 z-50 transition-transform ${offen ? 'translate-x-0' : '-translate-x-full'}
+        lg:static lg:translate-x-0 lg:transition-none`}
+    >
       {/* Logo */}
       <div className="p-4 border-b border-slate-800/80">
         <div className="flex items-center gap-3">
@@ -54,7 +63,7 @@ export default function Sidebar({ currentView, onNavigate, counts = {}, onLogout
               (item.id === 'angebote' && currentView === 'angebot-editor')
             }
             count={counts[item.id] || 0}
-            onClick={() => onNavigate(item.id)}
+            onClick={() => waehle(item.id)}
           />
         ))}
       </nav>
@@ -66,11 +75,11 @@ export default function Sidebar({ currentView, onNavigate, counts = {}, onLogout
           label="Einstellungen"
           icon={Settings}
           active={currentView === 'einstellungen'}
-          onClick={() => onNavigate('einstellungen')}
+          onClick={() => waehle('einstellungen')}
         />
         {onLogout && (
           <button
-            onClick={onLogout}
+            onClick={() => { onSchliessen?.(); onLogout(); }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all text-left text-slate-400 hover:text-red-400 hover:bg-red-500/10"
           >
             <LogOut size={16} />

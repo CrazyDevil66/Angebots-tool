@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { Menu } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './views/Dashboard';
 import AngeboteListe from './views/AngeboteListe';
@@ -31,6 +32,7 @@ export default function App() {
   // Einladungslinks brauchen keinen Login-Check – dort wird direkt der InviteScreen gezeigt.
   const [auth, setAuth] = useState(() => ({ loading: !istEinladungsLink(), setupRequired: false, token: null, user: null }));
   const [nav, setNav] = useState({ view: 'dashboard', params: {} });
+  const [menuOffen, setMenuOffen] = useState(false);
 
   const [firma,    setFirma]    = useState(null);
   const [kunden,   setKunden]   = useState([]);
@@ -96,6 +98,13 @@ export default function App() {
     window.addEventListener(SITZUNG_ABGELAUFEN, sitzungAbgelaufen);
     return () => window.removeEventListener(SITZUNG_ABGELAUFEN, sitzungAbgelaufen);
   }, []);
+
+  useEffect(() => {
+    if (!menuOffen) return;
+    const beiEscape = e => { if (e.key === 'Escape') setMenuOffen(false); };
+    window.addEventListener('keydown', beiEscape);
+    return () => window.removeEventListener('keydown', beiEscape);
+  }, [menuOffen]);
 
   useEffect(() => {
     if (istEinladungsLink()) return;
@@ -210,9 +219,29 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
-      <Sidebar currentView={nav.view} onNavigate={navigate} counts={counts} onLogout={abmelden} />
-      <main className="flex-1 overflow-y-auto">{renderView()}</main>
+    <div className="flex flex-col lg:flex-row h-dvh overflow-hidden bg-slate-50">
+      <header className="lg:hidden h-14 flex-shrink-0 bg-[#0f172a] border-b border-slate-800 flex items-center gap-3 px-4">
+        <button
+          onClick={() => setMenuOffen(true)}
+          aria-label="Menü öffnen"
+          className="p-2 -ml-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+        >
+          <Menu size={20} />
+        </button>
+        <span className="font-bold text-white text-sm tracking-tight">AngebotsTool</span>
+      </header>
+      {menuOffen && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setMenuOffen(false)} />
+      )}
+      <Sidebar
+        currentView={nav.view}
+        onNavigate={navigate}
+        counts={counts}
+        onLogout={abmelden}
+        offen={menuOffen}
+        onSchliessen={() => setMenuOffen(false)}
+      />
+      <main className="flex-1 min-h-0 overflow-y-auto">{renderView()}</main>
     </div>
   );
 }
