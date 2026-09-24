@@ -36,6 +36,7 @@ export default function AngebotEditor({
   const [rechnungModalOffen, setRechnungModalOffen] = useState(false);
   const [mahnModalOffen, setMahnModalOffen] = useState(false);
   const [katalogPickerOffen, setKatalogPickerOffen] = useState(false);
+  const [ansicht, setAnsicht] = useState('bearbeiten');
 
   function handleReset() {
     if (confirm('Eingaben zurücksetzen?')) formular.zuruecksetzen();
@@ -87,6 +88,8 @@ export default function AngebotEditor({
         onRechnungPDF={aktionen.rechnungPDF}
         onMahnung={() => setMahnModalOffen(true)}
         onBezahlt={aktionen.alsBezahltMarkieren}
+        ansicht={ansicht}
+        onAnsicht={setAnsicht}
       />
 
       <div className="max-w-7xl mx-auto px-8 py-6">
