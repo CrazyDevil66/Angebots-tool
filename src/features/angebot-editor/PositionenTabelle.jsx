@@ -86,18 +86,18 @@ export default function PositionenTabelle({ positionen, onChange }) {
               data-position-zeile
               onDragOver={e => handleDragOver(e, i)}
               onDrop={handleDrop}
-              className={`grid grid-cols-[28px_minmax(0,1fr)_auto_36px] gap-2 items-start
+              className={`grid grid-cols-[28px_minmax(0,1fr)_36px] sm:grid-cols-[28px_minmax(0,1fr)_auto_36px] gap-2 items-start
                 bg-slate-50 rounded-xl p-2 hover:bg-indigo-50/40 transition-colors group
                 ${ziehtVon === i ? 'opacity-40' : ''} ${linie}`}
             >
-              <div className="flex flex-col items-center text-slate-300 group-hover:text-slate-400">
+              <div className="row-span-2 sm:row-span-1 flex flex-col items-center text-slate-300 group-hover:text-slate-400">
                 <button
                   type="button"
                   onClick={() => verschiebe(i, i - 1)}
                   disabled={i === 0}
                   title="Nach oben"
                   aria-label={`Position ${i + 1} nach oben`}
-                  className="rounded hover:text-indigo-500 disabled:opacity-20 disabled:cursor-not-allowed"
+                  className="rounded touch:p-1.5 hover:text-indigo-500 disabled:opacity-20 disabled:cursor-not-allowed"
                 >
                   <ChevronUp size={14} />
                 </button>
@@ -106,7 +106,7 @@ export default function PositionenTabelle({ positionen, onChange }) {
                   onDragStart={e => handleDragStart(e, i)}
                   onDragEnd={handleDragEnd}
                   title="Ziehen zum Verschieben"
-                  className="cursor-grab active:cursor-grabbing py-0.5 hover:text-indigo-500"
+                  className="cursor-grab active:cursor-grabbing py-0.5 hover:text-indigo-500 touch:hidden"
                 >
                   <GripVertical size={16} />
                 </div>
@@ -116,7 +116,7 @@ export default function PositionenTabelle({ positionen, onChange }) {
                   disabled={i === positionen.length - 1}
                   title="Nach unten"
                   aria-label={`Position ${i + 1} nach unten`}
-                  className="rounded hover:text-indigo-500 disabled:opacity-20 disabled:cursor-not-allowed"
+                  className="rounded touch:p-1.5 hover:text-indigo-500 disabled:opacity-20 disabled:cursor-not-allowed"
                 >
                   <ChevronDown size={14} />
                 </button>
@@ -138,10 +138,11 @@ export default function PositionenTabelle({ positionen, onChange }) {
                   value={pos.beschreibung}
                   onChange={e => update(i, 'beschreibung', e.target.value)}
                 />
-                <div className="flex flex-wrap items-end gap-2 mt-0.5">
-                  <Feld label="Menge" className="w-20">
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-end gap-2 mt-0.5">
+                  <Feld label="Menge" className="sm:w-20">
                     <Input
                       type="number"
+                      inputMode="decimal"
                       min="0"
                       step="0.01"
                       value={pos.menge}
@@ -149,14 +150,15 @@ export default function PositionenTabelle({ positionen, onChange }) {
                       className="text-center"
                     />
                   </Feld>
-                  <Feld label="Einheit" className="w-24">
+                  <Feld label="Einheit" className="sm:w-24">
                     <Select value={pos.einheit} onChange={e => update(i, 'einheit', e.target.value)}>
                       {einheiten.map(e => <option key={e} value={e}>{e}</option>)}
                     </Select>
                   </Feld>
-                  <Feld label="EK-Preis (€)" className="w-24">
+                  <Feld label="EK-Preis (€)" className="sm:w-24">
                     <Input
                       type="number"
+                      inputMode="decimal"
                       min="0"
                       step="0.01"
                       value={pos.einzelpreis}
@@ -165,10 +167,11 @@ export default function PositionenTabelle({ positionen, onChange }) {
                       placeholder="0,00"
                     />
                   </Feld>
-                  <Feld label="Aufschlag" className="w-[4.5rem]">
+                  <Feld label="Aufschlag" className="sm:w-[4.5rem]">
                     <div className="relative flex items-center">
                       <input
                         type="number"
+                        inputMode="decimal"
                         min="0"
                         step="0.1"
                         value={pos.aufschlag ?? 0}
@@ -184,7 +187,7 @@ export default function PositionenTabelle({ positionen, onChange }) {
               </div>
 
               {/* Gesamt, darunter der Verkaufspreis je Einheit (berechnet) */}
-              <div className="flex flex-col items-end pt-2 pl-2 whitespace-nowrap">
+              <div className="col-start-2 row-start-2 sm:col-start-auto sm:row-start-auto flex sm:flex-col items-baseline sm:items-end justify-end gap-2 sm:gap-0 sm:pt-2 sm:pl-2 whitespace-nowrap">
                 <span className="text-sm font-semibold text-slate-700">{formatBetrag(gesamt)} €</span>
                 <span
                   title="Verkaufspreis je Einheit (EK + Aufschlag)"
@@ -194,7 +197,7 @@ export default function PositionenTabelle({ positionen, onChange }) {
                 </span>
               </div>
 
-              <div className="flex items-center justify-center h-9">
+              <div className="col-start-3 row-start-1 sm:col-start-auto sm:row-start-auto flex items-center justify-center h-9">
                 <button
                   onClick={() => remove(i)}
                   disabled={positionen.length === 1}

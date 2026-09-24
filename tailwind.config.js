@@ -4,6 +4,11 @@ export default {
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [
+    // Geräte, deren Hauptzeiger ein Finger ist (Tablet, Handy)
+    function ({ addVariant }) {
+      addVariant('touch', '@media (pointer: coarse)');
+    },
+  ],
 }
 
