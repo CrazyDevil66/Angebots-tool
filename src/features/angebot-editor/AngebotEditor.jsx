@@ -12,9 +12,10 @@ import Positionen from './abschnitte/Positionen';
 import Hinweise from './abschnitte/Hinweise';
 import useAngebotDaten from './useAngebotDaten';
 import useAngebotAktionen from './useAngebotAktionen';
+import useZurueckEbene from '../../lib/useZurueckEbene';
 
 export default function AngebotEditor({
-  navigate, params = {}, firma, kunden = [], angebote = [], setAngebote, katalog = [], token, registriereWaechter,
+  navigate, params = {}, firma, kunden = [], angebote = [], setAngebote, katalog = [], token, registriereWaechter, registriereEbene,
 }) {
   const formular = useAngebotDaten({ params, firma, angebote, token });
   const { data, meta, set } = formular;
@@ -37,6 +38,10 @@ export default function AngebotEditor({
   const [mahnModalOffen, setMahnModalOffen] = useState(false);
   const [katalogPickerOffen, setKatalogPickerOffen] = useState(false);
   const [ansicht, setAnsicht] = useState('bearbeiten');
+
+  useZurueckEbene(registriereEbene, rechnungModalOffen, rechnungModalSchliessen);
+  useZurueckEbene(registriereEbene, mahnModalOffen, () => setMahnModalOffen(false));
+  useZurueckEbene(registriereEbene, katalogPickerOffen, () => setKatalogPickerOffen(false));
 
   function handleReset() {
     if (confirm('Eingaben zurücksetzen?')) formular.zuruecksetzen();

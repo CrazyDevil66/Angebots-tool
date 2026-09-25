@@ -230,7 +230,7 @@ export default function App() {
     switch (nav.view) {
       case 'dashboard':      return <Dashboard {...sharedProps} />;
       case 'angebote':       return <AngeboteListe {...sharedProps} params={nav.params} />;
-      case 'angebot-editor': return <AngebotEditor {...sharedProps} params={nav.params} registriereWaechter={registriereWaechter} />;
+      case 'angebot-editor': return <AngebotEditor {...sharedProps} params={nav.params} registriereWaechter={registriereWaechter} registriereEbene={registriereEbene} />;
       case 'rechnungen':     return <RechnungenListe {...sharedProps} params={nav.params} />;
       case 'kunden':         return <KundenListe {...sharedProps} registriereEbene={registriereEbene} />;
       case 'einstellungen':  return <Einstellungen {...sharedProps} onLogout={handleLogout} />;
