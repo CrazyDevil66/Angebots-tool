@@ -1,6 +1,6 @@
 /**
  * Aktionen der Editor-Topbar nach Speichern und PDF, in Anzeigereihenfolge.
- * Desktop zeigt sie als Buttons, schmale Bildschirme im Mehr-Menü.
+ * Schmale Bildschirme zeigen alle im Mehr-Menü, der Desktop nur die Nebenaktionen (siehe EditorTopbar).
  * `menuLabel` ersetzt im Mehr-Menü das knappe `label` des Buttons.
  * @returns {{ id: 'mail'|'rechnung'|'rechnungPdf'|'mahnung'|'bezahlt', label: string, menuLabel?: string }[]}
  */

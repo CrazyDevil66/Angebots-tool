@@ -5,14 +5,15 @@ import StatusDropdown from '../../components/StatusDropdown';
 import MehrMenue from './MehrMenue';
 import { zusatzAktionen } from '../../utils/editorAktionen';
 
-const KNOPF = 'flex items-center gap-2 px-3 lg:px-4 py-1.5 text-sm font-semibold rounded-lg whitespace-nowrap lg:whitespace-normal transition-all';
+const KNOPF = 'flex items-center gap-2 px-3 lg:px-4 py-1.5 text-sm font-semibold rounded-lg whitespace-nowrap transition-all';
 
+// Aktionen mit `stil` sind am Desktop Buttons, die übrigen stehen dort im Mehr-Menü.
 const ZUSATZ = {
-  mail:        { icon: Mail,          stil: 'text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300' },
+  mail:        { icon: Mail },
   rechnung:    { icon: Receipt,       stil: 'text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60', pdf: true },
   rechnungPdf: { icon: Download,      stil: 'text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60', pdf: true },
   mahnung:     { icon: AlertTriangle, stil: 'text-white bg-red-600 hover:bg-red-700 disabled:opacity-60', pdf: true },
-  bezahlt:     { icon: Banknote,      stil: 'text-teal-700 bg-teal-50 border border-teal-200 hover:bg-teal-100' },
+  bezahlt:     { icon: Banknote },
 };
 
 const ANSICHTEN = [
@@ -34,10 +35,11 @@ export default function EditorTopbar({
     onClick: handler[a.id],
     disabled: ZUSATZ[a.id].pdf && pdfLoading,
   }));
-  const menuEintraege = [
-    ...aktionen,
-    { id: 'reset', label: 'Zurücksetzen', icon: RotateCcw, onClick: onReset, trennerDavor: aktionen.length > 0 },
-  ];
+  const desktopKnoepfe = aktionen.filter(a => a.stil);
+  const desktopMenue = aktionen.filter(a => !a.stil);
+  const reset = { id: 'reset', label: 'Zurücksetzen', icon: RotateCcw, onClick: onReset };
+  const menuEintraege = [...aktionen, { ...reset, trennerDavor: aktionen.length > 0 }];
+  const desktopMenuEintraege = [...desktopMenue, { ...reset, trennerDavor: desktopMenue.length > 0 }];
 
   return (
     <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
@@ -59,11 +61,6 @@ export default function EditorTopbar({
           <div className="hidden lg:block">
             <StatusDropdown status={status} onChange={onStatusChange} />
           </div>
-
-          <button onClick={onReset} className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">
-            <RotateCcw size={14} />
-            Zurücksetzen
-          </button>
 
           {ungespeichert && !savedHint && (
             <span className="hidden lg:flex items-center gap-1.5 text-xs font-medium text-amber-600 whitespace-nowrap">
@@ -97,13 +94,13 @@ export default function EditorTopbar({
           </button>
 
           <div className="hidden lg:contents">
-            {aktionen.map(({ id, label, icon: Icon, stil, onClick, disabled }) => (
+            {desktopKnoepfe.map(({ id, label, menuLabel, icon: Icon, stil, onClick, disabled }) => (
               <button
                 key={id}
                 onClick={onClick}
                 disabled={disabled}
                 className={`${KNOPF} ${stil}`}
-                title={id === 'mail' ? `An ${kundeEmail} senden` : undefined}
+                title={menuLabel}
               >
                 <Icon size={14} />
                 {label}
@@ -113,6 +110,9 @@ export default function EditorTopbar({
 
           <div className="ml-auto lg:hidden">
             <MehrMenue eintraege={menuEintraege} />
+          </div>
+          <div className="hidden lg:block">
+            <MehrMenue eintraege={desktopMenuEintraege} />
           </div>
         </div>
       </div>
