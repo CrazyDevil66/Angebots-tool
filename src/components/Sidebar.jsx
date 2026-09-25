@@ -1,4 +1,5 @@
 import { LayoutDashboard, FileText, Users, Settings, LogOut, Receipt } from 'lucide-react';
+import { version } from '../../package.json';
 
 const MAIN_NAV = [
   { id: 'dashboard',   label: 'Dashboard',  icon: LayoutDashboard },
@@ -86,6 +87,7 @@ export default function Sidebar({ currentView, onNavigate, counts = {}, onLogout
             <span className="font-medium">Abmelden</span>
           </button>
         )}
+        <div className="px-3 pt-2 text-[11px] text-slate-500">Version {version}</div>
       </div>
     </aside>
   );
