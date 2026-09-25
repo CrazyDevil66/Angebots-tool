@@ -1,64 +1,20 @@
-import { pruefeSitzung } from './client';
+import { anfrage, apiGet, apiPost, apiPatch, apiDelete, nullBeiFehlerstatus } from './client';
 
-const BASE = '';
-
-async function post(url, body, token) {
-  const headers = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(BASE + url, { method: 'POST', headers, body: JSON.stringify(body) });
-  if (token) pruefeSitzung(res);
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Fehler');
-  return data;
-}
-
-async function get(url, token) {
-  const headers = {};
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(BASE + url, { headers });
-  if (token) pruefeSitzung(res);
-  if (!res.ok) return null;
-  return res.json();
-}
-
-async function del(url, token) {
-  const res = await fetch(BASE + url, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  pruefeSitzung(res);
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Fehler');
-  return data;
-}
-
-async function patch(url, body, token) {
-  const res = await fetch(BASE + url, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify(body),
-  });
-  pruefeSitzung(res);
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Fehler');
-  return data;
-}
-
-export const apiSetupRequired  = ()              => get('/api/setup').then(d => d?.setupRequired ?? false);
-export const apiSetup          = (u, p)          => post('/api/setup', { username: u, password: p });
-export const apiLogin          = (u, p)          => post('/api/login', { username: u, password: p });
-export const apiMe             = (t)             => get('/api/me', t);
-export const apiChangePassword = (t, p)          => post('/api/me/password', { password: p }, t);
-export const apiGetUsers       = (t)             => get('/api/users', t);
-export const apiCreateUser     = (t, d)          => post('/api/users', d, t);
-export const apiUpdateUser     = (t, id, d)      => patch(`/api/users/${id}`, d, t);
-export const apiDeleteUser     = (t, id)         => del(`/api/users/${id}`, t);
-export const apiInviteUser     = (t, id)         => post(`/api/users/${id}/invite`, {}, t);
-export const apiResetPassword  = (t, id)         => post(`/api/users/${id}/reset-password`, {}, t);
-export const apiGetSmtp        = (t)             => get('/api/config/smtp', t);
-export const apiSaveSmtp       = (t, d)          => post('/api/config/smtp', d, t);
-export const apiTestSmtp       = (t, to)         => post('/api/config/smtp/test', { to }, t);
-export const apiRedeemInvite   = (token, p)      => post(`/invite/${token}`, { password: p });
+export const apiSetupRequired  = ()              => nullBeiFehlerstatus(apiGet(null, '/setup')).then(d => d?.setupRequired ?? false);
+export const apiSetup          = (u, p)          => apiPost(null, '/setup', { username: u, password: p });
+export const apiLogin          = (u, p)          => apiPost(null, '/login', { username: u, password: p });
+export const apiMe             = (t)             => nullBeiFehlerstatus(apiGet(t, '/me'));
+export const apiChangePassword = (t, p)          => apiPost(t, '/me/password', { password: p });
+export const apiGetUsers       = (t)             => nullBeiFehlerstatus(apiGet(t, '/users'));
+export const apiCreateUser     = (t, d)          => apiPost(t, '/users', d);
+export const apiUpdateUser     = (t, id, d)      => apiPatch(t, `/users/${id}`, d);
+export const apiDeleteUser     = (t, id)         => apiDelete(t, `/users/${id}`);
+export const apiInviteUser     = (t, id)         => apiPost(t, `/users/${id}/invite`, {});
+export const apiResetPassword  = (t, id)         => apiPost(t, `/users/${id}/reset-password`, {});
+export const apiGetSmtp        = (t)             => nullBeiFehlerstatus(apiGet(t, '/config/smtp'));
+export const apiSaveSmtp       = (t, d)          => apiPost(t, '/config/smtp', d);
+export const apiTestSmtp       = (t, to)         => apiPost(t, '/config/smtp/test', { to });
+export const apiRedeemInvite   = (token, p)      => anfrage(null, 'POST', `/invite/${token}`, { password: p });
 
 export const getToken  = ()  => sessionStorage.getItem('auth_token');
 export const saveToken = (t) => sessionStorage.setItem('auth_token', t);
