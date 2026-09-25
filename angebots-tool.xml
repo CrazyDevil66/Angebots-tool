@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Container version="2">
   <Name>Angebots-tool</Name>
-  <Repository>crazydevil66/angebots-tool:latest</Repository>
-  <Registry>https://hub.docker.com/r/crazydevil66/angebots-tool</Registry>
+  <Repository>crazydevil35/angebotstool:latest</Repository>
+  <Registry>https://hub.docker.com/r/crazydevil35/angebotstool</Registry>
   <Network>bridge</Network>
   <MyIP/>
   <Shell>sh</Shell>
@@ -12,7 +12,8 @@
   <Overview>Ein praktisches Tool zur Verwaltung von Angeboten.</Overview>
   <Category>Tools: Utility:</Category>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
-  <TemplateURL>https://raw.githubusercontent.com/CrazyDevil66/Angebots-tool/main/angebots-tool.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/CrazyDevil66/Angebots-tool/main/logo.png</Icon>
-  <Config Name="WebUI Port" Target="3000" Default="3000" Mode="tcp" Description="Der Port für die Weboberfläche" Type="Port" Display="always" Required="true" Mask="false"/>
+  <TemplateURL>https://raw.githubusercontent.com/CrazyDevil66/Angebots-tool/master/angebots-tool.xml</TemplateURL>
+  <Config Name="WebUI Port" Target="3000" Default="3000" Mode="tcp" Description="Der Port für die Weboberfläche" Type="Port" Display="always" Required="true" Mask="false">3000</Config>
+  <Config Name="Daten" Target="/app/data" Default="/mnt/user/appdata/angebots-tool" Mode="rw" Description="Benutzer, Einstellungen (SMTP, Firmendaten), Angebote, Kunden und Backups. Ohne dieses Volume gehen alle Daten beim Update verloren." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/angebots-tool</Config>
+  <Config Name="TRUST_PROXY" Target="TRUST_PROXY" Default="1" Mode="" Description="Anzahl vertrauenswürdiger Proxys vor der App (1 = Cloudflare). Nötig, damit die Login-Sperre die echte IP je Nutzer sieht. Leer lassen, wenn die App nur direkt ohne Proxy erreichbar ist." Type="Variable" Display="always" Required="false" Mask="false">1</Config>
 </Container>
