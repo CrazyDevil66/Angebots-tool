@@ -17,6 +17,8 @@ import { loadAngebote } from './api/angebote';
 import { apiSetupRequired, apiMe, getToken, saveToken, clearToken } from './api/auth';
 import { SITZUNG_ABGELAUFEN } from './api/client';
 import { defaultData } from './lib/defaultData';
+import useZurueckEbene from './lib/useZurueckEbene';
+import { erstelleVerlauf } from './utils/verlauf';
 
 function istEinladungsLink() {
   return /^\/invite\/(.+)$/.test(window.location.pathname);
@@ -33,6 +35,24 @@ export default function App() {
   const [auth, setAuth] = useState(() => ({ loading: !istEinladungsLink(), setupRequired: false, token: null, user: null }));
   const [nav, setNav] = useState({ view: 'dashboard', params: {} });
   const [menuOffen, setMenuOffen] = useState(false);
+
+  // Der Editor meldet hier eine Prüfung an, die vor dem Verlassen bei ungespeicherten Änderungen nachfragt.
+  const waechterRef = useRef(null);
+  const registriereWaechter = useCallback(pruefung => {
+    waechterRef.current = pruefung;
+    return () => { if (waechterRef.current === pruefung) waechterRef.current = null; };
+  }, []);
+
+  const [verlauf] = useState(() => erstelleVerlauf({
+    history: window.history,
+    onNavigation: ziel => {
+      if (waechterRef.current && !waechterRef.current()) return false;
+      setNav(ziel);
+      return true;
+    },
+  }));
+  const registriereEbene = useCallback(schliessen => verlauf.ebeneOeffnen(schliessen), [verlauf]);
+  useZurueckEbene(registriereEbene, menuOffen, () => setMenuOffen(false));
 
   const [firma,    setFirma]    = useState(null);
   const [kunden,   setKunden]   = useState([]);
@@ -100,6 +120,12 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    verlauf.start({ view: 'dashboard', params: {} });
+    window.addEventListener('popstate', verlauf.beiPopstate);
+    return () => window.removeEventListener('popstate', verlauf.beiPopstate);
+  }, [verlauf]);
+
+  useEffect(() => {
     if (!menuOffen) return;
     const beiEscape = e => { if (e.key === 'Escape') setMenuOffen(false); };
     window.addEventListener('keydown', beiEscape);
@@ -156,17 +182,11 @@ export default function App() {
     setAuth({ loading: false, setupRequired: false, token: null, user: null });
   }
 
-  // Der Editor meldet hier eine Prüfung an, die vor dem Verlassen bei ungespeicherten Änderungen nachfragt.
-  const waechterRef = useRef(null);
-  const registriereWaechter = useCallback(pruefung => {
-    waechterRef.current = pruefung;
-    return () => { if (waechterRef.current === pruefung) waechterRef.current = null; };
-  }, []);
-
   const navigate = useCallback((view, params = {}) => {
     if (waechterRef.current && !waechterRef.current()) return;
     setNav({ view, params });
-  }, []);
+    verlauf.navigiert({ view, params });
+  }, [verlauf]);
 
   function abmelden() {
     if (waechterRef.current && !waechterRef.current()) return;
@@ -212,7 +232,7 @@ export default function App() {
       case 'angebote':       return <AngeboteListe {...sharedProps} params={nav.params} />;
       case 'angebot-editor': return <AngebotEditor {...sharedProps} params={nav.params} registriereWaechter={registriereWaechter} />;
       case 'rechnungen':     return <RechnungenListe {...sharedProps} params={nav.params} />;
-      case 'kunden':         return <KundenListe {...sharedProps} />;
+      case 'kunden':         return <KundenListe {...sharedProps} registriereEbene={registriereEbene} />;
       case 'einstellungen':  return <Einstellungen {...sharedProps} onLogout={handleLogout} />;
       default:               return <Dashboard {...sharedProps} />;
     }

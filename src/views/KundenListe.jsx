@@ -8,6 +8,7 @@ import { saveKunde, deleteKunde } from '../api/stammdaten';
 import { formatBetrag } from '../utils/format';
 import { istAngenommen } from '../utils/angebote';
 import { neueId } from '../utils/id';
+import useZurueckEbene from '../lib/useZurueckEbene';
 
 const leerKunde = { id: null, anrede: '', firma: '', name: '', strasse: '', plz: '', ort: '', email: '', telefon: '' };
 
@@ -197,10 +198,11 @@ function KundeKarte({ kunde: k, umsatz, aktiv, onOeffnen }) {
   );
 }
 
-export default function KundenListe({ navigate, kunden = [], setKunden, angebote = [], token }) {
+export default function KundenListe({ navigate, kunden = [], setKunden, angebote = [], token, registriereEbene }) {
   const [suche, setSuche] = useState('');
   const [selected, setSelected] = useState(null);
   const [drawerMode, setDrawerMode] = useState('view');
+  useZurueckEbene(registriereEbene, !!selected || drawerMode === 'new', () => { setSelected(null); setDrawerMode('view'); });
 
   const gefiltert = useMemo(() => {
     const q = suche.toLowerCase();
