@@ -26,7 +26,7 @@ export default function MehrMenue({ eintraege }) {
 
       {offen && (
         <div className="absolute top-full mt-1.5 right-0 z-50 bg-white rounded-xl shadow-xl border border-slate-100 py-1 min-w-[220px]">
-          {eintraege.map(({ id, label, icon: Icon, onClick, disabled, trennerDavor }) => (
+          {eintraege.map(({ id, label, menuLabel, icon: Icon, onClick, disabled, trennerDavor }) => (
             <div key={id}>
               {trennerDavor && <div className="my-1 h-px bg-slate-100" />}
               <button
@@ -35,7 +35,7 @@ export default function MehrMenue({ eintraege }) {
                 className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors text-left"
               >
                 <Icon size={15} className="text-slate-400 flex-shrink-0" />
-                {label}
+                {menuLabel ?? label}
               </button>
             </div>
           ))}

@@ -20,6 +20,7 @@ test('zusatzAktionen: offene Rechnung bietet PDF, Mahnung und bezahlt in dieser 
   const liste = zusatzAktionen({ status: 'angenommen', rechnungsNr: 'RE-2026-001', mahnStufe: 0, kundeEmail: '' });
   assert.deepEqual(ids(liste), ['rechnungPdf', 'mahnung', 'bezahlt']);
   assert.equal(liste[0].label, 'RE-2026-001');
+  assert.equal(liste[0].menuLabel, 'Rechnung RE-2026-001 (PDF)');
   assert.equal(liste[1].label, 'Mahnung erstellen');
 });
 
