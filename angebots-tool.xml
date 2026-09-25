@@ -9,11 +9,20 @@
   <Privileged>false</Privileged>
   <Support>https://github.com/CrazyDevil66/Angebots-tool/issues</Support>
   <Project>https://github.com/CrazyDevil66/Angebots-tool</Project>
-  <Overview>Ein praktisches Tool zur Verwaltung von Angeboten.</Overview>
+  <Overview>Angebots-Tool zum Erstellen und Verwalten von Angeboten. Läuft als Node.js-Server mit persistentem Datenspeicher.</Overview>
   <Category>Tools: Utility:</Category>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/CrazyDevil66/Angebots-tool/master/angebots-tool.xml</TemplateURL>
-  <Config Name="WebUI Port" Target="3000" Default="3000" Mode="tcp" Description="Der Port für die Weboberfläche" Type="Port" Display="always" Required="true" Mask="false">3000</Config>
+  <Icon>https://raw.githubusercontent.com/CrazyDevil66/Angebots-tool/master/public/favicon.svg</Icon>
+  <ExtraParams></ExtraParams>
+  <PostArgs></PostArgs>
+  <CPUset></CPUset>
+  <DonateText></DonateText>
+  <DonateLink></DonateLink>
+  <Config Name="WebUI Port" Target="3000" Default="3000" Mode="tcp" Description="Externer Port, über den das Angebots-Tool erreichbar ist." Type="Port" Display="always" Required="true" Mask="false">3000</Config>
   <Config Name="Daten" Target="/app/data" Default="/mnt/user/appdata/angebots-tool" Mode="rw" Description="Benutzer, Einstellungen (SMTP, Firmendaten), Angebote, Kunden und Backups. Ohne dieses Volume gehen alle Daten beim Update verloren." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/angebots-tool</Config>
-  <Config Name="TRUST_PROXY" Target="TRUST_PROXY" Default="1" Mode="" Description="Anzahl vertrauenswürdiger Proxys vor der App (1 = Cloudflare). Nötig, damit die Login-Sperre die echte IP je Nutzer sieht. Leer lassen, wenn die App nur direkt ohne Proxy erreichbar ist." Type="Variable" Display="always" Required="false" Mask="false">1</Config>
+  <Config Name="TRUST_PROXY" Target="TRUST_PROXY" Default="1" Mode="" Description="Anzahl vertrauenswürdiger Proxys vor der App (1 = Cloudflare) oder deren Adressen (z. B. 172.17.0.0/16). Nötig, damit die Login-Sperre die echte IP je Nutzer sieht. Leer lassen, wenn die App nur direkt ohne Proxy erreichbar ist." Type="Variable" Display="always" Required="false" Mask="false">1</Config>
+  <Config Name="BASE_URL" Target="BASE_URL" Default="" Mode="" Description="Externe URL des Servers (z. B. https://angebote.meinserver.de). Wird für Einladungslinks verwendet." Type="Variable" Display="always" Required="false" Mask="false"></Config>
+  <Config Name="JWT_SECRET" Target="JWT_SECRET" Default="" Mode="" Description="Sicherer Zufallswert für die Anmelde-Tokens. Leer lassen: Er wird beim ersten Start erzeugt und im Datenverzeichnis gespeichert." Type="Variable" Display="always" Required="false" Mask="true"></Config>
+  <Config Name="PORT" Target="PORT" Default="3000" Mode="" Description="Interner Port des Node.js-Servers. Nicht ändern, außer wenn nötig." Type="Variable" Display="advanced" Required="false" Mask="false">3000</Config>
 </Container>
