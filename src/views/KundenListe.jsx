@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Plus, Search, Pencil, Trash2, X, UserCheck, Users, ChevronRight,
 } from 'lucide-react';
@@ -13,8 +13,12 @@ import { klickbarPerTastatur, FOKUS_RING } from '../lib/tastatur';
 
 const leerKunde = { id: null, anrede: '', firma: '', name: '', strasse: '', plz: '', ort: '', email: '', telefon: '' };
 
-function KundeForm({ initial, onSave, onCancel }) {
+function KundeForm({ initial, onSave, onCancel, geaendertRef }) {
   const [k, setK] = useState(initial);
+  useEffect(() => {
+    geaendertRef.current = JSON.stringify(k) !== JSON.stringify(initial);
+    return () => { geaendertRef.current = false; };
+  }, [k, initial, geaendertRef]);
   const set = (f, v) => setK(prev => ({ ...prev, [f]: v }));
   const valid = !!(k.firma || k.name);
 
@@ -203,7 +207,18 @@ export default function KundenListe({ navigate, kunden = [], setKunden, angebote
   const [suche, setSuche] = useState('');
   const [selected, setSelected] = useState(null);
   const [drawerMode, setDrawerMode] = useState('view');
-  useZurueckEbene(registriereEbene, !!selected || drawerMode === 'new', () => { setSelected(null); setDrawerMode('view'); });
+  const formularGeaendertRef = useRef(false);
+
+  // Zurück geht eine Stufe zurück: Bearbeiten → Ansicht → geschlossen.
+  useZurueckEbene(registriereEbene, !!selected || drawerMode === 'new', () => {
+    if (formularGeaendertRef.current && !confirm('Ungespeicherte Änderungen verwerfen?')) return false;
+    if (drawerMode === 'edit') {
+      setDrawerMode('view');
+      return false;
+    }
+    setSelected(null);
+    setDrawerMode('view');
+  });
 
   const gefiltert = useMemo(() => {
     const q = suche.toLowerCase();
@@ -365,6 +380,7 @@ export default function KundenListe({ navigate, kunden = [], setKunden, angebote
               <div className="flex-1 overflow-y-auto">
                 <KundeForm
                   initial={drawerMode === 'edit' ? selected : leerKunde}
+                  geaendertRef={formularGeaendertRef}
                   onSave={handleSave}
                   onCancel={() => {
                     if (drawerMode === 'new') { setSelected(null); setDrawerMode('view'); }

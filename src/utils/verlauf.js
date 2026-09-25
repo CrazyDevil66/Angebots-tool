@@ -49,7 +49,8 @@ export function erstelleVerlauf({ history, onNavigation }) {
 
     /**
      * Meldet eine geöffnete Ebene an. Die Rückgabe meldet sie wieder ab, sobald sie geschlossen ist.
-     * @param {() => void} schliessen
+     * @param {() => (boolean|void)} schliessen Wird von der Zurück-Taste aufgerufen; `false` heißt,
+     *   die Ebene bleibt offen (Nachfrage abgelehnt oder nur eine Stufe zurück) und behält ihren Eintrag.
      */
     ebeneOeffnen(schliessen) {
       const ebene = { schliessen, eintragWeg: false };
@@ -70,10 +71,16 @@ export function erstelleVerlauf({ history, onNavigation }) {
         if (ausstehendeRuecksprunge === 0) wartend.splice(0).forEach(state => history.pushState(state, ''));
         return;
       }
-      const ebene = ebenen.pop();
+      const ebene = ebenen.at(-1);
       if (ebene) {
         ebene.eintragWeg = true;
-        ebene.schliessen();
+        if (ebene.schliessen() === false) {
+          ebene.eintragWeg = false;
+          history.pushState({ nav: aktuell, ebene: true }, '');
+        } else {
+          const i = ebenen.indexOf(ebene);
+          if (i >= 0) ebenen.splice(i, 1);
+        }
         return;
       }
       const ziel = event.state?.nav;

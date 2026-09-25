@@ -123,3 +123,20 @@ test('verlauf: abgelehnter Wechsel stellt den Eintrag der aktuellen Ansicht wied
   assert.deepEqual(b.angezeigt, []);
   assert.deepEqual(b.views(), ['angebote', 'angebot-editor']);
 });
+
+test('verlauf: Ebene, die offen bleibt, behält ihren Eintrag', () => {
+  const b = browser();
+  b.verlauf.start(nav('kunden'));
+  let stufe = 'bearbeiten';
+  b.verlauf.ebeneOeffnen(() => {
+    if (stufe === 'bearbeiten') { stufe = 'ansehen'; return false; }
+    stufe = 'zu';
+  });
+  b.zurueckTaste();
+  assert.equal(stufe, 'ansehen');
+  assert.deepEqual(b.views(), ['kunden', 'kunden+']);
+  b.zurueckTaste();
+  assert.equal(stufe, 'zu');
+  assert.deepEqual(b.views(), ['kunden']);
+  assert.deepEqual(b.angezeigt, []);
+});
