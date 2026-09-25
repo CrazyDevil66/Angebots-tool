@@ -9,6 +9,7 @@ import { rechnungsDokument } from '../utils/angebote';
 import { formatDatum, parseDEDate } from '../utils/datum';
 import { sortiere, naechsteSortierung } from '../utils/sortierung';
 import { STATUS_LIST } from '../lib/statusConfig';
+import { klickbarPerTastatur, FOKUS_RING } from '../lib/tastatur';
 
 const TABS = [
   { id: 'alle', label: 'Alle' },
@@ -37,7 +38,7 @@ const nichtWeiterreichen = e => e.stopPropagation();
 
 function AngebotKarte({ angebot: a, onOeffnen, onStatus, onPDF, pdfLaedt, onLoeschen }) {
   return (
-    <li onClick={onOeffnen} className="p-4 flex flex-col gap-1 cursor-pointer active:bg-slate-50">
+    <li {...klickbarPerTastatur(onOeffnen)} className={`p-4 flex flex-col gap-1 cursor-pointer active:bg-slate-50 ${FOKUS_RING}`}>
       <div className="flex items-baseline justify-between gap-3">
         <div className="min-w-0">
           <span className="text-sm font-semibold text-indigo-600">{a.angebotNr}</span>

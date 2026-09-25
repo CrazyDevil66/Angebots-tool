@@ -9,6 +9,7 @@ import { formatBetrag } from '../utils/format';
 import { istAngenommen } from '../utils/angebote';
 import { neueId } from '../utils/id';
 import useZurueckEbene from '../lib/useZurueckEbene';
+import { klickbarPerTastatur, FOKUS_RING } from '../lib/tastatur';
 
 const leerKunde = { id: null, anrede: '', firma: '', name: '', strasse: '', plz: '', ort: '', email: '', telefon: '' };
 
@@ -182,8 +183,8 @@ function KundeDrawer({ kunde, angebote, onEdit, onDelete, onClose, onNeuesAngebo
 function KundeKarte({ kunde: k, umsatz, aktiv, onOeffnen }) {
   return (
     <li
-      onClick={onOeffnen}
-      className={`p-4 flex items-center gap-3 cursor-pointer ${aktiv ? 'bg-indigo-50' : 'active:bg-slate-50'}`}
+      {...klickbarPerTastatur(onOeffnen)}
+      className={`p-4 flex items-center gap-3 cursor-pointer ${FOKUS_RING} ${aktiv ? 'bg-indigo-50' : 'active:bg-slate-50'}`}
     >
       <div className="min-w-0 flex-1">
         <div className="font-semibold text-slate-800 text-sm truncate">{k.firma || k.name}</div>

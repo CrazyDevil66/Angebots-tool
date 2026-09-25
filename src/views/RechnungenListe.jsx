@@ -8,6 +8,7 @@ import SortierKopf from '../components/SortierKopf';
 import { generatePDF } from '../pdf/ladePDF';
 import { rechnungsDokument } from '../utils/angebote';
 import { getStatus } from '../lib/statusConfig';
+import { klickbarPerTastatur, FOKUS_RING } from '../lib/tastatur';
 
 const RECHNUNGS_STATUS = ['angenommen', 'gemahnt', 'bezahlt'];
 
@@ -72,7 +73,7 @@ function RechnungStatus({ status }) {
 function RechnungKarte({ rechnung: a, onOeffnen, onPDF, pdfLaedt }) {
   const betreff = a.rechnungsBetreff || a.betreff;
   return (
-    <li onClick={onOeffnen} className="p-4 flex flex-col gap-1 cursor-pointer active:bg-slate-50">
+    <li {...klickbarPerTastatur(onOeffnen)} className={`p-4 flex flex-col gap-1 cursor-pointer active:bg-slate-50 ${FOKUS_RING}`}>
       <div className="flex items-baseline justify-between gap-3">
         <div className="min-w-0">
           <span className="text-sm font-semibold text-emerald-600">{a.rechnungsNr}</span>

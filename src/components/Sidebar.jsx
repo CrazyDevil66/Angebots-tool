@@ -37,8 +37,8 @@ export default function Sidebar({ currentView, onNavigate, counts = {}, onLogout
   return (
     <aside
       className={`w-56 bg-[#0f172a] flex flex-col flex-shrink-0 h-dvh border-r border-slate-800
-        fixed inset-y-0 left-0 z-[60] transition-transform ${offen ? 'translate-x-0' : '-translate-x-full'}
-        lg:static lg:translate-x-0 lg:transition-none`}
+        fixed inset-y-0 left-0 z-[60] transition-[transform,visibility] ${offen ? 'translate-x-0' : '-translate-x-full invisible'}
+        lg:static lg:translate-x-0 lg:visible lg:transition-none`}
     >
       {/* Logo */}
       <div className="p-4 border-b border-slate-800/80">

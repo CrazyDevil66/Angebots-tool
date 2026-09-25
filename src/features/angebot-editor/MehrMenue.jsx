@@ -13,6 +13,13 @@ export default function MehrMenue({ eintraege }) {
     return () => document.removeEventListener('mousedown', handleOutside);
   }, []);
 
+  useEffect(() => {
+    if (!offen) return;
+    const beiEscape = e => { if (e.key === 'Escape') setOffen(false); };
+    window.addEventListener('keydown', beiEscape);
+    return () => window.removeEventListener('keydown', beiEscape);
+  }, [offen]);
+
   return (
     <div className="relative" ref={ref}>
       <button
