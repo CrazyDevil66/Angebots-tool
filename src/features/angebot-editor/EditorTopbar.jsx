@@ -5,7 +5,7 @@ import StatusDropdown from '../../components/StatusDropdown';
 import MehrMenue from './MehrMenue';
 import { zusatzAktionen } from '../../utils/editorAktionen';
 
-const KNOPF = 'flex items-center gap-2 px-3 lg:px-4 py-1.5 text-sm font-semibold rounded-lg whitespace-nowrap transition-all';
+const KNOPF = 'flex items-center justify-center gap-2 min-h-8 px-3 lg:px-4 py-1.5 text-sm font-semibold rounded-lg whitespace-nowrap transition-all';
 
 // Aktionen mit `stil` sind am Desktop Buttons, die übrigen stehen dort im Mehr-Menü.
 const ZUSATZ = {
@@ -43,21 +43,21 @@ export default function EditorTopbar({
 
   return (
     <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
-      <div className="px-4 md:px-8 py-2 lg:py-0 lg:h-14 flex flex-col lg:flex-row lg:items-center justify-between gap-2 lg:gap-4">
+      <div className="px-4 md:px-8 lg:px-6 xl:px-8 py-2 lg:py-0 lg:h-14 flex flex-col lg:flex-row lg:items-center justify-between gap-2 lg:gap-3 xl:gap-4">
         {/* Breadcrumb, auf schmalen Bildschirmen mit Status */}
         <div className="flex items-center gap-2 text-sm min-w-0 lg:min-w-[auto]">
           <button onClick={onZurueck} className="text-slate-400 hover:text-indigo-600 font-medium transition-colors">
             Angebote
           </button>
           <ChevronRight size={14} className="text-slate-300 flex-shrink-0 lg:flex-shrink" />
-          <span className="font-semibold text-slate-800 truncate lg:overflow-visible lg:whitespace-normal">{titel}</span>
+          <span className="font-semibold text-slate-800 truncate lg:overflow-visible">{titel}</span>
           <div className="ml-auto lg:hidden">
             <StatusDropdown status={status} onChange={onStatusChange} rechts />
           </div>
         </div>
 
         {/* Aktionen */}
-        <div className="flex items-center gap-2 lg:gap-3">
+        <div className="flex items-center gap-2 xl:gap-3">
           <div className="hidden lg:block">
             <StatusDropdown status={status} onChange={onStatusChange} />
           </div>
@@ -100,10 +100,11 @@ export default function EditorTopbar({
                 onClick={onClick}
                 disabled={disabled}
                 className={`${KNOPF} ${stil}`}
-                title={menuLabel}
+                title={menuLabel ?? label}
+                aria-label={menuLabel ?? label}
               >
                 <Icon size={14} />
-                {label}
+                <span className="hidden xl:inline">{label}</span>
               </button>
             ))}
           </div>
