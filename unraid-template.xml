@@ -6,13 +6,13 @@
   <Network>bridge</Network>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
-  <Support>https://github.com/CrazyDevil66/Angeboots-tool</Support>
-  <Project>https://github.com/CrazyDevil66/Angeboots-tool</Project>
+  <Support>https://github.com/CrazyDevil66/Angebots-tool</Support>
+  <Project>https://github.com/CrazyDevil66/Angebots-tool</Project>
   <Overview>Angebots-Tool zum Erstellen und Verwalten von Angeboten. Läuft als Node.js-Server mit persistentem Datenspeicher.</Overview>
   <Category>Tools:</Category>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
-  <TemplateURL>https://raw.githubusercontent.com/CrazyDevil66/Angeboots-tool/master/unraid-template.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/CrazyDevil66/Angeboots-tool/master/public/favicon.svg</Icon>
+  <TemplateURL>https://raw.githubusercontent.com/CrazyDevil66/Angebots-tool/master/unraid-template.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/CrazyDevil66/Angebots-tool/master/public/favicon.svg</Icon>
   <ExtraParams></ExtraParams>
   <PostArgs></PostArgs>
   <CPUset></CPUset>
