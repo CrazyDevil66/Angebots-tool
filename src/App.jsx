@@ -16,6 +16,7 @@ import { loadFirma, loadKunden, loadKatalog } from './api/stammdaten';
 import { loadAngebote } from './api/angebote';
 import { apiSetupRequired, apiMe, getToken, saveToken, clearToken } from './api/auth';
 import { SITZUNG_ABGELAUFEN } from './api/client';
+import { verbindeLiveUpdates } from './api/liveUpdates';
 import { defaultData } from './lib/defaultData';
 import useZurueckEbene from './lib/useZurueckEbene';
 import { erstelleVerlauf } from './utils/verlauf';
@@ -61,7 +62,7 @@ export default function App() {
   const [ladeFehler, setLadeFehler] = useState(null);
   const [loginHinweis, setLoginHinweis] = useState(null);
 
-  const eventSourceRef = useRef(null);
+  const liveVerbindungRef = useRef(null);
 
   async function loadAllData(token) {
     const [f, k, a, kat] = await Promise.all([
@@ -76,11 +77,9 @@ export default function App() {
     setAngebote(a);
   }
 
-  function openSSE(token) {
-    if (eventSourceRef.current) eventSourceRef.current.close();
-    const es = new EventSource(`/api/events?token=${encodeURIComponent(token)}`);
-    es.onmessage = async (e) => {
-      const { dataType } = JSON.parse(e.data);
+  function liveUpdatesStarten(token) {
+    liveVerbindungRef.current?.();
+    liveVerbindungRef.current = verbindeLiveUpdates(token, async dataType => {
       try {
         if (dataType === 'firma')    setFirma(await loadFirma(token));
         if (dataType === 'kunden')   setKunden(await loadKunden(token));
@@ -89,10 +88,7 @@ export default function App() {
       } catch (err) {
         console.error(`Live-Aktualisierung von ${dataType} fehlgeschlagen:`, err);
       }
-    };
-    // Der Browser verbindet sich selbst neu; der Hinweis hilft bei der Fehlersuche.
-    es.onerror = () => { console.warn('Live-Verbindung unterbrochen – Browser verbindet neu'); };
-    eventSourceRef.current = es;
+    });
   }
 
   // Lädt alle Daten und startet die Live-Verbindung. Schlägt das Laden fehl,
@@ -101,7 +97,7 @@ export default function App() {
     setLadeFehler(null);
     try {
       await loadAllData(token);
-      openSSE(token);
+      liveUpdatesStarten(token);
     } catch (e) {
       console.error('Datenladen fehlgeschlagen:', e);
       setLadeFehler(e.message || 'Unbekannter Fehler');
@@ -156,7 +152,7 @@ export default function App() {
       }
       setAuth({ loading: false, setupRequired: false, token: null, user: null });
     })();
-    return () => { if (eventSourceRef.current) eventSourceRef.current.close(); };
+    return () => liveVerbindungRef.current?.();
   // eslint-disable-next-line react-hooks/exhaustive-deps -- nur einmal beim Öffnen der App
   }, []);
 
@@ -172,7 +168,8 @@ export default function App() {
   }
 
   function handleLogout() {
-    if (eventSourceRef.current) { eventSourceRef.current.close(); eventSourceRef.current = null; }
+    liveVerbindungRef.current?.();
+    liveVerbindungRef.current = null;
     clearToken();
     setLadeFehler(null);
     setFirma(null);
