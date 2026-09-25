@@ -241,7 +241,7 @@ export default function App() {
         offen={menuOffen}
         onSchliessen={() => setMenuOffen(false)}
       />
-      <main className="flex-1 min-h-0 overflow-y-auto">{renderView()}</main>
+      <main className={`flex-1 min-h-0 ${menuOffen ? 'overflow-hidden' : 'overflow-y-auto'}`}>{renderView()}</main>
     </div>
   );
 }
